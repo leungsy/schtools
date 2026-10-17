@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Tools for Schools — a central hub for classroom, planning, and other digital tools.">
+  <title>Tool Hub | App Launcher</title>
+  <style>
+    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color-scheme: light; --bg:#f5f7fb; --surface:#fff; --surface2:#f8f9fc; --text:#19243a; --muted:#64748b; --line:#e5eaf1; --accent:#295cd6; --accent-soft:#eaf0ff; --shadow:0 12px 32px rgba(24,39,68,.055); }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);min-height:100vh} button,input,a{font:inherit} a{color:inherit;text-decoration:none} button{cursor:pointer}
+    .shell{max-width:1180px;margin:auto;padding:0 28px}.topbar{background:var(--surface);border-bottom:1px solid var(--line)} .top-inner{display:flex;align-items:center;justify-content:space-between;min-height:76px;gap:16px}
+    .brand{display:flex;gap:12px;align-items:center;font-weight:750;font-size:19px;letter-spacing:-.5px}.brand-icon{width:39px;height:39px;border-radius:12px;display:grid;place-items:center;background:#183a8a;color:#fff;font-size:19px}
+    .top-right{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}.status-dot{width:7px;height:7px;background:#22a06b;border-radius:50%;display:inline-block}.theme-toggle{border:1px solid var(--line);background:var(--surface);color:var(--text);width:37px;height:37px;border-radius:10px;display:grid;place-items:center}
+    .hero{padding:63px 0 39px}.eyebrow{color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:2px;font-weight:750}.hero h1{font-size:clamp(32px,4.1vw,49px);line-height:1.12;letter-spacing:-1.9px;margin:14px 0}.hero p{font-size:16px;line-height:1.65;color:var(--muted);margin:0;max-width:610px}
+    .controls[hidden]{display:none!important}.controls{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:7px 0 27px;flex-wrap:wrap}.search{flex:1;min-width:235px;max-width:420px;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 15px;height:46px;color:var(--muted)}.search:focus-within{outline:2px solid var(--accent);outline-offset:2px}.search input{border:0;outline:0;min-width:0;width:100%;background:transparent;color:var(--text);font-size:14px}.search input::placeholder{color:#94a0b2}
+    .filters{display:flex;gap:7px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:9px 14px;font-size:13px;color:var(--muted)}.filter.active{background:var(--accent-soft);border-color:#c9d8ff;color:#2149a6;font-weight:700}.section-header{display:flex;justify-content:space-between;align-items:center;margin:0 0 18px;gap:12px}.section-header h2{font-size:17px;margin:0;letter-spacing:-.3px}.count{color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.app{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:23px;min-height:229px;display:flex;flex-direction:column;position:relative;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s,border-color .15s}.app[href]:hover,.app[href]:focus-visible{transform:translateY(-3px);box-shadow:0 16px 40px rgba(24,39,68,.1);border-color:#bdcbdf;outline:none}.app-top{display:flex;justify-content:space-between;align-items:start}.app-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:var(--icon-bg,#eef2ff);color:#111827}.app-icon svg{width:30px;height:30px;display:block;stroke:currentColor} .arrow{color:#9ba8bb;font-size:22px}.app h3{font-size:17px;line-height:1.25;margin:20px 0 7px;letter-spacing:-.3px}.app p{font-size:13px;line-height:1.6;color:var(--muted);margin:0 0 19px;flex:1}.app-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.tag{align-self:flex-start;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:11px;color:var(--muted);font-weight:650}.last-updated{font-size:11px;color:var(--muted)}.app.unavailable{box-shadow:none;border-style:dashed}.app.unavailable .arrow{font-size:11px;color:var(--muted);max-width:140px;text-align:right;line-height:1.4}.empty{display:none;text-align:center;padding:50px 20px;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}.empty strong{display:block;color:var(--text);margin-bottom:6px}
+    footer{border-top:1px solid var(--line);margin-top:75px;padding:26px 0 36px;color:var(--muted);font-size:12px}.footer-row{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.footer-links{border-top:1px solid var(--line);margin-top:24px;padding-top:23px;display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap}.footer-links-label{font-size:12px;font-weight:700;color:var(--text);margin-right:3px}.footer-links a{display:inline-flex;align-items:center;gap:7px;color:var(--accent);font-size:13px;font-weight:650}.footer-links a:hover{text-decoration:underline}.footer-links svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.shell{padding:0 18px}.hero{padding:42px 0 32px}.grid{grid-template-columns:1fr}.app{min-height:210px}.controls{align-items:stretch}.search{max-width:none;width:100%}.top-right .offline-label{display:none}}
+    [data-theme=dark]{color-scheme:dark;--bg:#101827;--surface:#1a2537;--surface2:#202d40;--text:#f1f5fc;--muted:#a5b3c7;--line:#324056;--accent:#8cb2ff;--accent-soft:#233c69;--shadow:0 12px 32px rgba(0,0,0,.1)}[data-theme=dark] .brand-icon{background:#4469ba}[data-theme=dark] .filter.active{color:#d2e0ff;border-color:#496798}[data-theme=dark] .app:hover{border-color:#647ca1}[data-theme=dark] .search input::placeholder{color:#92a0b4}
+    @media(prefers-reduced-motion:reduce){.app{transition:none}}
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="shell top-inner"><a class="brand" href="./" aria-label="Tool Hub home"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 9V7.5A2.5 2.5 0 0 1 13.5 5h5A2.5 2.5 0 0 1 21 7.5V9"/><rect x="3.5" y="9" width="25" height="18" rx="2.5"/><path d="M3.5 16h25M14 16v4h4v-4"/></svg></span><span>Tool Hub<span style="color:var(--accent)">.</span></span></a><div class="top-right"><span class="status-dot" aria-hidden="true"></span><span class="offline-label">Your app collection</span><button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">☾</button></div></div></header>
+  <main class="shell"><section class="hero"><div class="eyebrow">Digital Workspace</div><h1>Tools for Schools</h1><p>Note: These are offline apps. Save/Export your work before closing the app.</p></section>
+  <section aria-label="Tool collection"><div class="controls" id="controls"><label class="search"><span aria-hidden="true">⌕</span><input type="search" id="searchInput" placeholder="Search tools..." autocomplete="off" aria-label="Search tools"></label><div class="filters" id="filters" aria-label="Filter by category"></div></div><div class="section-header"><h2>Explore tools</h2><span id="count" class="count" aria-live="polite"></span></div><div class="grid" id="appGrid"></div><div class="empty" id="empty"><strong>No matching tools</strong>Try another keyword or category.</div></section></main>
+  <footer>
+    <div class="shell">
+      <div class="footer-row"><span>© <span id="year"></span> Tool Hub · Please let SY know if you have any feedback or suggestions!</span><span>Updated Oct 2026</span></div>
+      <nav class="footer-links" aria-label="Other tool collections">
+        <span class="footer-links-label">Other collections</span>
+        <a href="./student-facing-tools/">Student-facing tools <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+        <a href="./just-for-fun/">Just for fun! <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+      </nav>
+    </div>
+  </footer>
+  <script>
+    // ===========================================================
+    // EDIT THIS LIST TO ADD, REMOVE, OR UPDATE YOUR APPLICATIONS.
+    // Each app's URL is relative to this homepage (GitHub Pages-safe).
+    // To add an app, create a folder with its index.html, then add
+    // a matching object to the APPS array below.
+    // ===========================================================
+    const APPS = [
+      {
+        title: 'CRToolbox',
+        description: 'A digital classroom screen for presenting and managing classroom activities.',
+        category: 'Classroom',
+        icon: 'whiteboard',
+        color: '#eaf0ff',
+        lastUpdated: 'DATE', // Example: '17 Oct 2026'
+        url: './crtoolbox/' // Upload the CRToolbox app to /crtoolbox/index.html
+      },
+      {
+        title: 'HALP',
+        description: 'A deployment planner for organising personnel assignments and reviewing constraints.',
+        category: 'Planning',
+        icon: 'deployment',
+        color: '#e7f6ef',
+        lastUpdated: 'DATE',
+        url: '' // Enter HALP's URL when ready.
+                // A client-side password prompt is only a casual access deterrent.
+      },
+      {
+        title: 'Tool 3',
+        description: 'Another tool for your collection. Edit this description to explain what it does.',
+        category: 'School tools',
+        icon: 'plus',
+        color: '#f0f2f5',
+        lastUpdated: 'DATE',
+        url: './tool-3/' // Change to the tool's real URL; add /tool-3/index.html if using this path.
+      },
+      {
+        title: 'Tool 4',
+        description: 'Another tool for your collection. Edit this description to explain what it does.',
+        category: 'School tools',
+        icon: 'plus',
+        color: '#f0f2f5',
+        lastUpdated: 'DATE',
+        url: './tool-4/' // Change to the tool's real URL; add /tool-4/index.html if using this path.
+      }
+    ];
+    // Add further tools here when needed. Dates are manually maintained, not generated.
+    // Example: lastUpdated: '17 Oct 2026'.
+    // Empty URLs are shown as inactive cards.
+
+    const grid = document.getElementById('appGrid');
+    const filters = document.getElementById('filters');
+    const search = document.getElementById('searchInput');
+    let selected = 'All';
+    const categories = ['All', ...new Set(APPS.map(a => a.category))];
+    document.getElementById('controls').hidden = APPS.length < 5;
+    function renderFilters() {
+      filters.replaceChildren();
+      categories.forEach(category => {
+        const btn = document.createElement('button');
+        btn.className = 'filter' + (category === selected ? ' active' : '');
+        btn.type = 'button';
+        btn.textContent = category;
+        btn.setAttribute('aria-pressed', String(category === selected));
+        btn.addEventListener('click', () => { selected = category; renderFilters(); renderApps(); });
+        filters.append(btn);
+      });
+    }
+    function renderApps() {
+      const query = search.value.trim().toLocaleLowerCase();
+      const matches = APPS.filter(app => (selected === 'All' || app.category === selected) && [app.title, app.description, app.category].some(v => v.toLocaleLowerCase().includes(query)));
+      grid.replaceChildren();
+      for (const app of matches) {
+        const card = document.createElement(app.url ? 'a' : 'div'); card.className = 'app' + (app.url ? '' : ' unavailable'); if (app.url) card.href = app.url;
+        const top = document.createElement('div'); top.className = 'app-top';
+        const icon = document.createElement('div'); icon.className = 'app-icon'; icon.style.setProperty('--icon-bg', app.color); icon.setAttribute('aria-hidden', 'true');
+        if (app.icon === 'whiteboard') {
+          // Built-in SVG: no icon library or internet access required.
+          icon.innerHTML = `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="25" height="20" rx="1.8"/><path d="M2 27h28M7.5 11h9M7.5 15h6.5M20 18l4-4M19.5 20l1.1-2.6M24 14l-2.6 1.1"/><path d="M22 24.5h5v2h-5z" fill="currentColor" stroke="none"/></svg>`;
+        } else if (app.icon === 'deployment') {
+          // Personnel assignment icon: one person branching into two placements.
+          icon.innerHTML = `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="16" cy="5.5" r="3"/><path d="M9.5 15v-.8c0-3.3 2.4-5.2 6.5-5.2s6.5 1.9 6.5 5.2v.8H9.5zM16 15v5M7 23v-3h18v3"/><rect x="3.5" y="23" width="7" height="6" rx="1.2"/><rect x="21.5" y="23" width="7" height="6" rx="1.2"/></svg>`;
+        } else if (app.icon === 'plus') {
+          icon.innerHTML = `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M16 7v18M7 16h18"/></svg>`;
+        } else {
+          icon.textContent = app.icon;
+        }
+        const arrow = document.createElement('span'); arrow.className = 'arrow'; arrow.textContent = app.url ? '↗' : (app.status || 'Link not set'); if (app.url) arrow.setAttribute('aria-hidden', 'true');
+        top.append(icon, arrow);
+        const title = document.createElement('h3'); title.textContent = app.title;
+        const desc = document.createElement('p'); desc.textContent = app.description;
+        const meta = document.createElement('div'); meta.className = 'app-meta';
+        const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = app.category;
+        const updated = document.createElement('span'); updated.className = 'last-updated'; updated.textContent = 'Last updated: ' + (app.lastUpdated || 'DATE');
+        meta.append(tag, updated);
+        card.append(top, title, desc, meta); grid.append(card);
+      }
+      document.getElementById('count').textContent = `${matches.length} ${matches.length === 1 ? 'tool' : 'tools'}`;
+      document.getElementById('empty').style.display = matches.length ? 'none' : 'block';
+    }
+    search.addEventListener('input', renderApps);
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const themeButton = document.getElementById('themeToggle');
+    const initialTheme = localStorage.getItem('toolbox-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    function setTheme(theme) { document.documentElement.dataset.theme = theme; themeButton.textContent = theme === 'dark' ? '☀' : '☾'; localStorage.setItem('toolbox-theme', theme); }
+    setTheme(initialTheme);
+    themeButton.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+    renderFilters(); renderApps();
+  </script>
+</body>
+</html>
