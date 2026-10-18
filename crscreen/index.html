@@ -108,7 +108,6 @@ select.input{appearance:auto}
 .switch input:focus-visible + .track{outline:3px solid #9cc7c9;outline-offset:2px}
 .size-btns{display:inline-flex;gap:4px}
 .size-btns .ib{width:40px;height:38px;font-size:16px;font-weight:700}
-.size-btns .ib.auto{width:auto;padding:0 10px}
 .count-box{display:flex;align-items:center;gap:4px}
 .count-box .input{text-align:center;font-weight:700;padding:4px}
 .stepper{display:inline-flex;align-items:center;gap:6px}
@@ -682,11 +681,12 @@ const CONFIG = {
     sand:  { name: 'Sand',  colour: '#eee3d0' },
   },
   backupReminderDays: 14,               // a dot appears on Backup after this many days without one
-  autoFitText: true,                    // text apps start with "Auto" text size (fits the box)
   chime: { notes: [659.25, 830.61, 987.77], playTimes: 2, volume: 0.16 },  // soft E-major chime
   timerPresets: [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90],                  // minutes, in the Set time window
 
-  /* ---------- Clicker and keyboard (key names as the browser reports them) ---------- */
+  /* ---------- Clicker and keyboard (key names as the browser reports them) ----------
+     While the cursor is in a text box, letters and arrows type as normal;
+     Page Down, Page Up and F5 (clicker buttons) still work the clicker. */
   keys: {
     next:      ['PageDown', 'ArrowRight', 'ArrowDown'],   // clicker forward button
     back:      ['PageUp', 'ArrowLeft', 'ArrowUp'],        // clicker back button
@@ -1409,36 +1409,15 @@ function blankify(text) {
   return str(text).split(/(…|_{2,}|\.\.\.)/).filter(p => p !== '').map(p => /^(…|_{2,}|\.\.\.)$/.test(p) ? h('span', { class: 'blank', 'aria-label': 'blank' }) : p);
 }
 
-/* ---------- Text size for text apps: A− | Auto | A+ ----------
-   Auto finds the largest size (16px up to max) at which everything fits without scrolling. */
-function textSizer(d, ctx, root, scrollers, max) {
-  const MIN = 16;
-  let raf = 0;
-  const fits = () => scrollers().every(el => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1);
-  function apply() {
-    if (!d.fit) { root.style.setProperty('--fs', d.fs + 'px'); return; }
-    if (!root.isConnected || !root.clientHeight) return;
-    let lo = MIN, hi = max, best = MIN;
-    while (lo <= hi) {
-      const mid = (lo + hi) >> 1;
-      root.style.setProperty('--fs', mid + 'px');
-      if (fits()) { best = mid; lo = mid + 1; } else hi = mid - 1;
-    }
-    root.style.setProperty('--fs', best + 'px');
-  }
-  const refit = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(apply); };
-  const current = () => parseFloat(root.style.getPropertyValue('--fs')) || d.fs;
-  const auto = h('button', { class: 'ib auto', type: 'button', title: 'Fit text to the box', onmousedown: e => e.preventDefault(),
-    onclick: () => { d.fit = !d.fit; if (!d.fit) d.fs = Math.round(current()); sync(); apply(); ctx.save(); } }, 'Auto');
-  const step = dir => { d.fs = clamp(Math.round(current()) + dir * 2, MIN, max); d.fit = false; sync(); apply(); ctx.save(); };
+/* ---------- Text size for text apps: A− | A+ (2px a click, 16px up to max) ---------- */
+function textSizer(d, ctx, root, max) {
+  const apply = () => root.style.setProperty('--fs', d.fs + 'px');
+  const step = dir => { d.fs = clamp(d.fs + dir * 2, 16, max); apply(); ctx.save(); };
   const mk = (txt, dir, label) => h('button', { class: 'ib', type: 'button', title: label, 'aria-label': label, onmousedown: e => e.preventDefault(), onclick: () => step(dir) }, txt);
-  function sync() { auto.classList.toggle('on', !!d.fit); auto.setAttribute('aria-pressed', String(!!d.fit)); }
-  const ro = new ResizeObserver(refit); ro.observe(root);
-  root.style.setProperty('--fs', d.fs + 'px');
-  sync(); refit();
-  return { el: h('span', { class: 'size-btns' }, mk('A−', -1, 'Smaller text'), auto, mk('A+', 1, 'Larger text')), refit, destroy: () => ro.disconnect() };
+  apply();
+  return h('span', { class: 'size-btns' }, mk('A−', -1, 'Smaller text'), mk('A+', 1, 'Larger text'));
 }
-const fixFs = (d, dflt, max) => { d.fs = clamp(Math.round(numOr(d.fs, dflt)), 16, max); d.fit = d.fit !== false; };
+const fixFs = (d, dflt, max) => { d.fs = clamp(Math.round(numOr(d.fs, dflt)), 16, max); delete d.fit; };
 
 /* ---------- Sentence starters (shared library) ---------- */
 function startersFor(k) {
@@ -1465,7 +1444,8 @@ function routineSteps(d) {
 }
 
 /* ---------- Windows: openModal / confirmBox / promptBox / toast ---------- */
-function openModal({ title, body, actions = [], wide = false, onClose }) {
+/* keep: true = a click or tap outside does not close it (windows you type or tick in) */
+function openModal({ title, body, actions = [], wide = false, keep = false, onClose }) {
   const root = $('#modalRoot');
   const overlay = h('div', { class: 'modal-overlay' });
   const box = h('div', { class: 'modal' + (wide ? ' wide' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': title });
@@ -1486,7 +1466,7 @@ function openModal({ title, body, actions = [], wide = false, onClose }) {
       onclick: () => { if (a.onClick && a.onClick() === false) return; close(); },
     }, a.label))) : null
   );
-  overlay.addEventListener('pointerdown', e => { if (e.target === overlay) close(); });
+  overlay.addEventListener('pointerdown', e => { if (e.target === overlay && !keep) close(); });
   overlay.append(box); root.append(overlay);
   document.addEventListener('keydown', onKey, true);
   setTimeout(() => {
@@ -1513,7 +1493,7 @@ function promptBox(title, label, value = '') {
     let answered = false;
     const input = h('input', { class: 'input', type: 'text', maxlength: 60, 'data-autofocus': '' }); input.value = value;
     const m = openModal({
-      title, body: field(label, input),
+      title, body: field(label, input), keep: true,
       actions: [
         { label: 'Cancel', onClick: () => { answered = true; res(null); } },
         { label: 'OK', kind: 'primary', onClick: () => { const v = input.value.trim(); if (!v) { input.focus(); return false; } answered = true; res(v); } },
@@ -1686,15 +1666,15 @@ clock: {
 /* ---------- Notice ---------- */
 notice: {
   label: 'Notice', icon: 'notice', size: [520, 340], min: [260, 160],
-  defaults: () => ({ html: CONFIG.notice.text, fs: 28, fit: CONFIG.autoFitText }),
+  defaults: () => ({ html: CONFIG.notice.text, fs: 28 }),
   fix(d) { d.html = sanitize(d.html); fixFs(d, 28, 120); },
   mount(body, w, ctx) {
     const d = w.data;
     const ed = h('div', { class: 'nt-edit', contenteditable: 'true', spellcheck: 'true', 'data-ph': 'Click here to type instructions. Formatting tools appear while you type.' });
     ed.innerHTML = sanitize(d.html);
     const root = h('div', { class: 'nt' });
-    const sizer = textSizer(d, ctx, root, () => [ed], 96);
-    const sync = () => { if (ed.innerHTML === '<br>' || ed.innerHTML === '<div><br></div>') ed.innerHTML = ''; d.html = ed.innerHTML; ctx.save(); sizer.refit(); };
+    const sizer = textSizer(d, ctx, root, 120);
+    const sync = () => { if (ed.innerHTML === '<br>' || ed.innerHTML === '<div><br></div>') ed.innerHTML = ''; d.html = ed.innerHTML; ctx.save(); };
     const cmd = (c, v = null) => { ed.focus(); document.execCommand(c, false, v); sync(); };
     const color = c => {
       ed.focus();
@@ -1716,7 +1696,7 @@ notice: {
       sep(),
       CONFIG.notice.textColours.map(c => tb(h('span', { class: 'dot', style: `background:${c.colour}` }), c.name + ' text', () => color(c.colour))),
       sep(),
-      sizer.el,
+      sizer,
       tb(icon('eraser'), 'Clear formatting', () => cmd('removeFormat')),
     );
     ed.addEventListener('input', sync);
@@ -1726,14 +1706,13 @@ notice: {
     });
     root.append(tools, ed);
     body.append(root);
-    return { destroy: sizer.destroy };
   },
 },
 
 /* ---------- Agenda (learning objectives with tickboxes) ---------- */
 agenda: {
   label: 'Agenda', icon: 'agenda', size: [480, 380], min: [260, 200], fallback: true,
-  defaults: () => ({ title: CONFIG.agenda.title, fs: 26, fit: CONFIG.autoFitText, items: CONFIG.agenda.objectives.map(t => ({ id: uid(), text: t, done: false })) }),
+  defaults: () => ({ title: CONFIG.agenda.title, fs: 26, items: CONFIG.agenda.objectives.map(t => ({ id: uid(), text: t, done: false })) }),
   fix(d) {
     d.title = str(d.title).slice(0, 200); fixFs(d, 26, 100);
     d.items = (Array.isArray(d.items) ? d.items : []).filter(i => i && typeof i === 'object').map(i => ({ id: str(i.id) || uid(), text: str(i.text).slice(0, 500), done: !!i.done }));
@@ -1744,14 +1723,14 @@ agenda: {
     const root = h('div', { class: 'ag' });
     const title = h('div', { class: 'ag-title', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': 'Title' });
     title.textContent = d.title;
-    title.addEventListener('input', () => { d.title = title.textContent; ctx.save(); sizer.refit(); });
+    title.addEventListener('input', () => { d.title = title.textContent; ctx.save(); });
     title.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (d.items.length) focusItem(0); else addItem(0); } });
     const list = h('ul', { class: 'ag-list' });
     const count = h('span', { class: 'ag-count' });
-    const sizer = textSizer(d, ctx, root, () => [list], 72);
+    const sizer = textSizer(d, ctx, root, 100);
     root.append(title, list, h('div', { class: 'ag-foot edit-only' },
       h('button', { class: 'btn small', type: 'button', onclick: () => addItem(d.items.length) }, icon('plus'), 'Add objective'),
-      h('span', { class: 'spacer' }), count, sizer.el));
+      h('span', { class: 'spacer' }), count, sizer));
     body.append(root);
 
     const updateCount = () => { const n = d.items.filter(i => i.done).length; count.textContent = `${n} of ${d.items.length} done`; };
@@ -1777,7 +1756,7 @@ agenda: {
         cb.addEventListener('click', () => setDone(it, li, cb, !it.done));
         const tx = h('div', { class: 'ag-text', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': 'Type an objective…' });
         tx.textContent = it.text;
-        tx.addEventListener('input', () => { it.text = tx.textContent; ctx.save(); sizer.refit(); });
+        tx.addEventListener('input', () => { it.text = tx.textContent; ctx.save(); });
         tx.addEventListener('keydown', e => {
           if (e.key === 'Enter') { e.preventDefault(); addItem(i + 1); }
           else if (e.key === 'Backspace' && tx.textContent === '') { e.preventDefault(); removeItem(i, true); }
@@ -1786,12 +1765,11 @@ agenda: {
           ib('up', 'Move up', () => move(i, -1)), ib('down', 'Move down', () => move(i, 1)), ib('trash', 'Delete', () => removeItem(i))));
         list.append(li);
       });
-      updateCount(); sizer.refit();
+      updateCount();
     }
     draw();
     const tickAt = (i, v) => { const li = list.children[i]; if (li) setDone(d.items[i], li, li.querySelector('.ag-check'), v); };
     return {
-      destroy: sizer.destroy,
       next() { const i = d.items.findIndex(x => !x.done); if (i >= 0) tickAt(i, true); },
       back() { for (let i = d.items.length - 1; i >= 0; i--) if (d.items[i].done) { tickAt(i, false); return; } },
     };
@@ -2092,7 +2070,7 @@ points: {
 /* ---------- Routine card (SAC / QFT / Socratic Seminar) ---------- */
 routine: {
   label: 'Routine', icon: 'routine', size: [900, 560], min: [420, 320], settings: true, fallback: true,
-  defaults: () => ({ kind: 'sac', focus: { sac: '', qft: '', soc: '' }, custom: { sac: null, qft: null, soc: null }, opts: { swap: true, fishbowl: true }, idx: 0, showStarters: true, fs: 24, fit: CONFIG.autoFitText, timer: timerDefaults(ROUTINES.sac.steps[0].minutes * 60 || 60) }),
+  defaults: () => ({ kind: 'sac', focus: { sac: '', qft: '', soc: '' }, custom: { sac: null, qft: null, soc: null }, opts: { swap: true, fishbowl: true }, idx: 0, showStarters: true, fs: 24, timer: timerDefaults(ROUTINES.sac.steps[0].minutes * 60 || 60) }),
   fix(d) {
     if (!ROUTINES[d.kind]) d.kind = 'sac';
     const f = d.focus && typeof d.focus === 'object' ? d.focus : {};
@@ -2120,7 +2098,7 @@ routine: {
       const st = routineSteps(d)[0]; tSet(d.timer, Math.max(0.5, st ? st.time || 0 : 1) * 60000);
       ctx.save(); ctx.rerender();
     });
-    const focusT = oneLine(h('div', { class: 'rt-focus-t', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': R.questionHint }), v => { d.focus[d.kind] = v; ctx.save(); sizer.refit(); });
+    const focusT = oneLine(h('div', { class: 'rt-focus-t', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': R.questionHint }), v => { d.focus[d.kind] = v; ctx.save(); });
     focusT.textContent = d.focus[d.kind];
     const count = h('div', { class: 'rt-count' }); const title = h('div', { class: 'rt-title' }); const text = h('div', { class: 'rt-text' });
     const stepEl = h('div', { class: 'rt-step' }, count, title, text);
@@ -2135,11 +2113,11 @@ routine: {
     const tRe = ib('reset', 'Reset step timer', () => { tReset(d.timer); ctx.save(); draw(Date.now()); syncT(); });
     const timerBox = h('div', { class: 'rt-timer', title: 'Timer for this step' }, icon('analog'), tTime, tGo, tRe);
     const stBtn = h('button', { class: 'btn small edit-only', type: 'button', onclick: () => { d.showStarters = !d.showStarters; ctx.save(); drawStep(); } });
-    const sizer = textSizer(d, ctx, root, () => [stepEl, stEl].filter(e => !e.hidden), 44);
+    const sizer = textSizer(d, ctx, root, 60);
     root.append(
       h('div', { class: 'rt-top' }, h('div', { class: 'rt-focus' }, h('small', { text: R.questionLabel }), focusT), sel),
       main,
-      h('div', { class: 'rt-foot' }, back, dots, next, h('span', { class: 'spacer' }), timerBox, stBtn, h('span', { class: 'edit-only' }, sizer.el)));
+      h('div', { class: 'rt-foot' }, back, dots, next, h('span', { class: 'spacer' }), timerBox, stBtn, h('span', { class: 'edit-only' }, sizer)));
     body.append(root);
 
     function syncT() {
@@ -2166,23 +2144,24 @@ routine: {
       dots.textContent = '';
       steps.forEach((st, i) => dots.append(h('button', { type: 'button', class: i === d.idx ? 'on' : (i < d.idx ? 'past' : ''), title: `Step ${i + 1}: ${st.title}`, 'aria-label': `Go to step ${i + 1}: ${st.title}`, onclick: () => jump(i) })));
       timerBox.hidden = !s.time;
-      draw(Date.now()); syncT(); sizer.refit();
+      draw(Date.now()); syncT();
     }
     function draw(now) { tTime.textContent = fmtMs(tLeft(d.timer, now)); timerBox.classList.toggle('done', d.timer.done); }
     if (tCheck(d.timer, Date.now())) ctx.save();
     drawStep();
     return {
       tick(now) { if (tCheck(d.timer, now)) { if (d.timer.chime) chime(); ctx.save(); syncT(); } draw(now); },
-      destroy: sizer.destroy,
       next: () => jump(d.idx + 1), back: () => jump(d.idx - 1),
-      play() { if (steps[d.idx] && steps[d.idx].time) toggleTimer(); },
+      play() { if (!steps[d.idx] || !steps[d.idx].time) return false; toggleTimer(); },   // false = no timer on this step
     };
   },
   settings(w, ctx) {
     const d = w.data; const R = ROUTINES[d.kind];
     const items = [h('p', { class: 'muted', text: 'Routine: ' + R.name + '. Change routine with the menu on the card.' })];
     if (R.option) items.push(checkbox(R.optionLabel, d.opts[R.option], v => {
-      d.opts[R.option] = v; d.idx = clamp(d.idx, 0, Math.max(0, routineSteps(d).length - 1)); ctx.save(); ctx.rerender();
+      d.opts[R.option] = v; const steps = routineSteps(d); d.idx = clamp(d.idx, 0, Math.max(0, steps.length - 1));
+      if (steps[d.idx]) tSet(d.timer, Math.max(0.5, steps[d.idx].time || 0) * 60000);   // timer matches the step now showing
+      ctx.save(); ctx.rerender();
     }));
     items.push(checkbox('Show sentence starters beside each step', d.showStarters, v => { d.showStarters = v; ctx.save(); ctx.rerender(); }));
     items.push(checkbox('Play a soft chime when a step’s time is up', d.timer.chime, v => { d.timer.chime = v; ctx.save(); }));
@@ -2196,7 +2175,7 @@ routine: {
 /* ---------- Sentence starters ---------- */
 talk: {
   label: 'Sentence starters', icon: 'talk', size: [760, 520], min: [300, 220], settings: true,
-  defaults: () => ({ cats: CONFIG.sentenceStarters.showFirst.slice(), fs: 24, fit: CONFIG.autoFitText }),
+  defaults: () => ({ cats: CONFIG.sentenceStarters.showFirst.slice(), fs: 24 }),
   fix(d) {
     d.cats = (Array.isArray(d.cats) ? d.cats : []).filter(k => STARTER_CATS[k]);
     if (!d.cats.length) d.cats = CONFIG.sentenceStarters.showFirst.filter(k => STARTER_CATS[k]);
@@ -2205,10 +2184,8 @@ talk: {
   mount(body, w, ctx) {
     const d = w.data;
     const root = h('div', { class: 'tk' }, h('div', { class: 'tk-grid' }, d.cats.map(starterBlock)));
-    const sizer = textSizer(d, ctx, root, () => [root], 48);
     body.append(root, h('div', { class: 'tk-foot edit-only' },
-      h('span', { class: 'muted spacer', text: 'Choose which sets to show in ⚙ settings.' }), sizer.el));
-    return { destroy: sizer.destroy };
+      h('span', { class: 'muted spacer', text: 'Choose which sets to show in ⚙ settings.' }), textSizer(d, ctx, root, 60)));
   },
   settings(w, ctx) {
     const d = w.data;
@@ -2228,7 +2205,7 @@ talk: {
 /* ---------- Frayer model ---------- */
 frayer: {
   label: 'Frayer model', icon: 'frayer', size: [800, 520], min: [380, 300],
-  defaults: () => ({ term: '', labels: CONFIG.frayer.boxes.map(b => b.name), cells: ['', '', '', ''], fs: 22, fit: CONFIG.autoFitText }),
+  defaults: () => ({ term: '', labels: CONFIG.frayer.boxes.map(b => b.name), cells: ['', '', '', ''], fs: 22 }),
   fix(d) {
     const DEF = CONFIG.frayer.boxes.map(b => b.name);
     d.term = str(d.term).slice(0, 120);
@@ -2241,18 +2218,16 @@ frayer: {
     const d = w.data;
     const root = h('div', { class: 'fr' });
     const grid = h('div', { class: 'fr-grid' });
-    const cells = [];
     d.labels.forEach((lab, i) => {
       const hd = oneLine(h('div', { class: 'fr-h', contenteditable: 'plaintext-only', spellcheck: 'false', title: 'Click to rename this box' }), v => { d.labels[i] = v; ctx.save(); });
       hd.textContent = lab;
-      const c = richList(d.cells[i], v => { d.cells[i] = v; ctx.save(); sizer.refit(); });
-      c.classList.add('fr-c'); c.setAttribute('aria-label', lab); cells.push(c);
+      const c = richList(d.cells[i], v => { d.cells[i] = v; ctx.save(); });
+      c.classList.add('fr-c'); c.setAttribute('aria-label', lab);
       grid.append(h('div', { class: 'fr-q ' + (i < 2 ? 'top' : 'bot'), style: `--qc:${CONFIG.frayer.boxes[i].colour}` }, hd, c));
     });
     const term = oneLine(h('div', { class: 'fr-term', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': 'Key term' }), v => { d.term = v; ctx.save(); });
     term.textContent = d.term;
     grid.append(term);
-    const sizer = textSizer(d, ctx, root, () => cells, 48);
     async function clearAll() {
       if (!(await confirmBox('Clear the Frayer model?', 'Remove the term and everything in the four boxes? The box headings stay.', 'Clear', true))) return;
       const old = { term: d.term, cells: d.cells.slice() };
@@ -2261,11 +2236,11 @@ frayer: {
     }
     root.append(grid, h('div', { class: 'fr-foot edit-only' },
       h('span', { class: 'muted spacer', text: 'Click a box to type. Enter starts a new bullet point.' }),
-      h('button', { class: 'btn small', type: 'button', onclick: clearAll }, icon('eraser'), 'Clear'), sizer.el));
+      h('button', { class: 'btn small', type: 'button', onclick: clearAll }, icon('eraser'), 'Clear'), textSizer(d, ctx, root, 60)));
     body.append(root);
-    let th = -1;   // the centre term is sized from the box (not the text size), so this can't loop
-    const ro = new ResizeObserver(() => { const t = term.offsetHeight; if (Math.abs(t - th) > 1) { th = t; grid.style.setProperty('--th', t + 'px'); sizer.refit(); } }); ro.observe(term);
-    return { destroy() { ro.disconnect(); sizer.destroy(); } };
+    let th = -1;   // the box corners make room for the centre term; the term is sized from the box, not the text size
+    const ro = new ResizeObserver(() => { const t = term.offsetHeight; if (Math.abs(t - th) > 1) { th = t; grid.style.setProperty('--th', t + 'px'); } }); ro.observe(term);
+    return { destroy() { ro.disconnect(); } };
   },
 },
 
@@ -2436,7 +2411,7 @@ confidence: {
 /* ---------- Exit ticket ---------- */
 exit: {
   label: 'Exit ticket', icon: 'exit', size: [740, 460], min: [340, 260], settings: true,
-  defaults: () => ({ kind: CONFIG.exitTicket.type === 'beforeNow' ? 'bn' : '321', mode: 'prompts', topic: '', p321: CONFIG.exitTicket.prompts321.slice(), pbn: CONFIG.exitTicket.promptsBeforeNow.slice(), r321: ['', '', ''], rbn: ['', ''], fs: 26, fit: CONFIG.autoFitText }),
+  defaults: () => ({ kind: CONFIG.exitTicket.type === 'beforeNow' ? 'bn' : '321', mode: 'prompts', topic: '', p321: CONFIG.exitTicket.prompts321.slice(), pbn: CONFIG.exitTicket.promptsBeforeNow.slice(), r321: ['', '', ''], rbn: ['', ''], fs: 26 }),
   fix(d) {
     const def = APPS.exit.defaults();
     d.kind = d.kind === 'bn' ? 'bn' : '321'; d.mode = d.mode === 'responses' ? 'responses' : 'prompts';
@@ -2455,21 +2430,19 @@ exit: {
     const topic = oneLine(h('div', { class: 'ex-topic', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': 'Add a topic (optional)' }), v => { d.topic = v; ctx.save(); });
     topic.textContent = d.topic;
     root.append(h('div', { class: 'ex-head' }, h('b', { text: 'Exit ticket' }), topic));
-    const boxes = [];
-    const prompt = (val, set) => { const el = oneLine(h('div', { class: 'ex-p', contenteditable: 'plaintext-only', spellcheck: 'true', title: 'Click to edit the prompt' }), v => { set(v); ctx.save(); sizer.refit(); }); el.textContent = val; return el; };
-    const respBox = (html, set, label) => { const r = richList(html, v => { set(v); ctx.save(); sizer.refit(); }); r.classList.add('ex-r'); r.setAttribute('aria-label', 'Responses: ' + label); boxes.push(r); return r; };
+    const prompt = (val, set) => { const el = oneLine(h('div', { class: 'ex-p', contenteditable: 'plaintext-only', spellcheck: 'true', title: 'Click to edit the prompt' }), v => { set(v); ctx.save(); }); el.textContent = val; return el; };
+    const respBox = (html, set, label) => { const r = richList(html, v => { set(v); ctx.save(); }); r.classList.add('ex-r'); r.setAttribute('aria-label', 'Responses: ' + label); return r; };
     if (d.kind === '321') {
       root.append(h('div', { class: 'ex-321' + (resp ? ' resp' : '') }, [3, 2, 1].map((n, i) => {
         const row = h('div', { class: 'ex-row', style: `--bc:${CONFIG.exitTicket.colours321[i]}` },
           h('div', { class: 'ex-badge', text: String(n) }), prompt(d.p321[i], v => { d.p321[i] = v; }),
           resp ? respBox(d.r321[i], v => { d.r321[i] = v; }, d.p321[i]) : null);
-        boxes.push(row); return row;
+        return row;
       })));
     } else {
-      const col = i => { const c = h('div', { class: 'ex-col', style: `--bc:${CONFIG.exitTicket.coloursBeforeNow[i]}` }, prompt(d.pbn[i], v => { d.pbn[i] = v; }), resp ? respBox(d.rbn[i], v => { d.rbn[i] = v; }, d.pbn[i]) : null); boxes.push(c); return c; };
+      const col = i => { const c = h('div', { class: 'ex-col', style: `--bc:${CONFIG.exitTicket.coloursBeforeNow[i]}` }, prompt(d.pbn[i], v => { d.pbn[i] = v; }), resp ? respBox(d.rbn[i], v => { d.rbn[i] = v; }, d.pbn[i]) : null); return c; };
       root.append(h('div', { class: 'ex-bn' }, col(0), h('div', { class: 'ex-arrow', 'aria-hidden': 'true' }, icon('right')), col(1)));
     }
-    const sizer = textSizer(d, ctx, root, () => boxes, 56);
     root.append(h('div', { class: 'ex-foot edit-only' },
       resp ? h('button', { class: 'btn small', type: 'button', onclick: () => {
         const old = { r321: d.r321.slice(), rbn: d.rbn.slice() };
@@ -2477,9 +2450,8 @@ exit: {
         toast('Responses cleared', { label: 'Undo', fn: () => { Object.assign(d, old); ctx.save(); ctx.rerender(); } });
       } }, icon('eraser'), 'Clear responses') : null,
       h('span', { class: 'muted spacer', text: resp ? 'Type class responses under each prompt.' : 'Click a prompt to edit it. Switch type or mode in ⚙ settings.' }),
-      sizer.el));
+      textSizer(d, ctx, root, 60)));
     body.append(root);
-    return { destroy: sizer.destroy };
   },
   settings(w, ctx) {
     const d = w.data;
@@ -2544,7 +2516,7 @@ function openTimerSettings(w, ctx) {
       h('button', { class: 'btn small', type: 'button', onclick: () => chime() }, icon('bell'), 'Test chime'))));
   secs.push(err);
   openModal({
-    title: isA ? 'Visual timer' : 'Countdown',
+    title: isA ? 'Visual timer' : 'Countdown', keep: true,
     body: h('div', { class: 'form' }, secs),
     actions: [{ label: 'Cancel' }, {
       label: 'Apply', kind: 'primary', onClick: () => {
@@ -2601,7 +2573,7 @@ function openStepsEditor(w, ctx) {
     if (await confirmBox('Reset steps?', `Go back to the default ${R.short} steps? Your edits to the steps will be lost.`, 'Reset', true)) { list = defaultSteps(d.kind); draw(); }
   } }, icon('reset'), 'Reset to default steps');
   openModal({
-    title: `Edit steps — ${R.name}`, wide: true,
+    title: `Edit steps — ${R.name}`, wide: true, keep: true,
     body: h('div', { class: 'form' }, box, h('div', { class: 'form-row' }, add, reset)),
     actions: [{ label: 'Cancel' }, { label: 'Save steps', kind: 'primary', onClick: () => {
       d.custom[d.kind] = list.map(cleanStep).filter(s => s.title.trim() || s.text.trim());
@@ -2626,7 +2598,7 @@ function openStartersEditor() {
   function load() { ta.value = work[cur]; note.textContent = ''; drawList(); ta.focus(); }
   const reset = h('button', { class: 'btn small', type: 'button', onclick: () => { ta.value = STARTER_CATS[cur].starters.join('\n'); note.textContent = 'Default starters restored. Press Save to keep them.'; } }, icon('reset'), 'Reset this set');
   openModal({
-    title: 'Sentence starters', wide: true,
+    title: 'Sentence starters', wide: true, keep: true,
     body: h('div', { class: 'cm' }, list, h('div', { class: 'cm-edit' },
       field('One sentence starter per line. Type … or __ where students fill in a blank.', ta),
       h('div', { class: 'cm-row' }, h('span', { class: 'spacer' }), reset), note)),
@@ -2654,7 +2626,7 @@ function openAbsentModal(classId) {
   }));
   const done = names => { setAbsent(classId, names); rerenderType(['picker', 'groups']); };
   openModal({
-    title: `Who's absent? — ${c.name}`, wide: true,
+    title: `Who's absent? — ${c.name}`, wide: true, keep: true,
     body: h('div', {}, h('p', { class: 'muted', text: 'Tick students who are away today. They are left out of the Name picker and Group maker. The list clears itself tomorrow.' }), grid),
     actions: [
       { label: 'Everyone is here', onClick: () => done([]) },
@@ -2851,7 +2823,7 @@ function openImportPicker(fileName, sheets, onUse) {
   sheetSel.addEventListener('change', () => { si = +sheetSel.value; loadSheet(); });
   headCb.addEventListener('change', drawPreview);
   openModal({
-    title: `Import names from “${fileName}”`, wide: true,
+    title: `Import names from “${fileName}”`, wide: true, keep: true,
     body: h('div', { class: 'form' },
       usable.length > 1 ? field('Which sheet or table?', sheetSel) : null,
       h('div', { class: 'form-sec' }, h('h3', { text: 'Which column has the names?' }), colBox),
@@ -2936,13 +2908,15 @@ function openClassManager(selectId) {
     });
   });
   openModal({
-    title: 'Class lists', wide: true,
+    title: 'Class lists', wide: true, keep: true,
     body: h('div', { class: 'cm' }, list, h('div', { class: 'cm-edit' },
       field('Class name', nameIn),
       h('div', { class: 'cm-row' }, h('span', { class: 'muted', text: 'Type or paste names, one per line — or' }), importBtn, fileIn),
       field('Names — one per line', ta),
       h('div', { class: 'cm-row' }, count, h('span', { class: 'spacer' }), sortBtn, delBtn, saveBtn), note)),
     actions: [{ label: 'Done', kind: 'primary', onClick: () => commit(true) }],
+    // closing with ✕ or Esc still keeps what was typed, if it can be saved
+    onClose: () => { if (dirty && !commit(true)) toast('Class list not saved — it needs a class name and at least one name'); },
   });
   loadSel();
 }
@@ -2968,7 +2942,7 @@ function openHelp() {
         row(K.focus, 'Focus mode on or off'),
         row(['Escape'], 'Leave blank screen, spotlight or focus mode'),
         row(K.help, 'Show this list')),
-      h('p', { class: 'muted', style: 'margin-top:12px', text: 'Most presentation clickers send Page Down / Page Up, so they work straight away. On a touch panel, tap an app to choose it, and double-tap its top bar (or tap ⤢) to spotlight it.' })),
+      h('p', { class: 'muted', style: 'margin-top:12px', text: 'Most presentation clickers send Page Down / Page Up, so they work straight away — even if you were just typing in an app. On a touch panel, tap an app to choose it, and double-tap its top bar (or tap ⤢) to spotlight it.' })),
     actions: [{ label: 'Close', kind: 'primary' }],
   });
 }
@@ -3004,6 +2978,14 @@ function mountWidget(w, animate) {
   boardEl.append(el);
   el.addEventListener('pointerdown', () => { bringToFront(w, el); if (canClick(instances.get(w.id))) setTarget(w.id); }, true);
   head.addEventListener('dblclick', e => { if (!e.target.closest('button')) toggleSpot(w.id); });
+  // touch screens don't send double-clicks, so count two quick taps on the top bar ourselves
+  let tapAt = 0, downAt = null;
+  head.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+  head.addEventListener('pointerup', e => {
+    if (e.pointerType !== 'touch' || !downAt || e.target.closest('button')) return;
+    const still = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 12, now = Date.now();
+    if (still && now - tapAt < 400) { tapAt = 0; toggleSpot(w.id); } else tapAt = still ? now : 0;
+  });
   enableDrag(head, el, w); enableResize(grip, el, w);
   const ctx = { el, save, rerender: () => rerenderWidget(w.id) };
   let inst = {};
@@ -3148,7 +3130,11 @@ function setTarget(id) {
 const topmostWith = fn => [...instances.values()].filter(r => r.inst[fn]).sort(byZ)[0] || null;
 function clickerAct(kind) {
   const t = clickerTarget();
-  if (kind === 'play') { const r = t && t.inst.play ? t : topmostWith('play'); if (r) r.inst.play(); else toast('There is no timer on this board'); return; }
+  if (kind === 'play') {   // the chosen app's timer first, then the top-most timer (a routine step with no timer is skipped)
+    const order = [t, ...[...instances.values()].sort(byZ)].filter((r, i, a) => r && r.inst.play && a.indexOf(r) === i);
+    if (!order.some(r => r.inst.play() !== false)) toast('There is no timer on this board');
+    return;
+  }
   if (kind === 'pick') { const r = t && t.inst.pick ? t : topmostWith('pick'); if (r) r.inst.pick(); else toast('Add a Name picker first'); return; }
   if (!t) { toast('Click or tap a Routine, Voting tracker, Agenda or Name picker to choose what the clicker controls'); return; }
   if (t.inst[kind]) t.inst[kind]();
@@ -3198,9 +3184,17 @@ document.addEventListener('keydown', e => {
   }
   const t = e.target;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  if (t.closest && t.closest('input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]')) return;
   if (t.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;   // let a focused button work normally
-  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, K = CONFIG.keys, is = list => list.includes(k);
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, K = CONFIG.keys;
+  const is = list => list.some(x => (x.length === 1 ? x.toLowerCase() : x) === k);
+  // In a text box, letters, arrows and editing keys type as normal. Keys that never type
+  // (Page Down / Page Up / F5 from a clicker) leave the box and still work the clicker.
+  const field = t.closest && t.closest('input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]');
+  if (field) {
+    const clickerOnly = k.length > 1 && !/^Arrow/.test(k) && [K.next, K.back, K.focus].some(is);
+    if (!clickerOnly) return;
+    field.blur();
+  }
   if (!blankEl.hidden) {   // while the screen is blank, any clicker button just brings it back
     if (is(K.blank) || is(K.next) || is(K.back)) { e.preventDefault(); setBlank(false); }
     return;
@@ -3216,8 +3210,16 @@ document.addEventListener('keydown', e => {
   else return;
   e.preventDefault();
 });
-/* after a mouse or touch click, let go of button focus so Space/arrows reach the clicker controls */
-document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button'); if (b && e.detail > 0) setTimeout(() => b.blur(), 0); });
+/* After a mouse or touch click, let go of focus on buttons, switches and dropdowns, so Space and the
+   clicker reach the apps (otherwise Space flips the switch, or Page Up changes the board). */
+let pointerAt = 0;
+document.addEventListener('pointerdown', () => { pointerAt = Date.now(); }, true);
+const letGo = el => setTimeout(() => { if (document.activeElement === el) el.blur(); }, 0);
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button'); if (b && e.detail > 0) letGo(b); });
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (Date.now() - pointerAt < 10000 && !el.closest('.modal') && el.matches('select, input[type="checkbox"], input[type="radio"]')) letGo(el);
+});
 
 /* ---------- Menus ---------- */
 function closeMenus() { document.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open')); document.querySelectorAll('[data-menu]').forEach(b => b.setAttribute('aria-expanded', 'false')); }
@@ -3246,7 +3248,7 @@ const ACTIONS = {
   dupBoard() {
     const b = board(); const copy = clone(b);
     copy.id = uid(); copy.name = ('Copy of ' + b.name).slice(0, 60); delete copy.target;
-    copy.widgets.forEach(w => { w.id = uid(); if (w.data && 'running' in w.data) tPause(w.data); });
+    copy.widgets.forEach(w => { w.id = uid(); [w.data, w.data && w.data.timer].forEach(t => { if (t && 'running' in t) tPause(t); }); });
     store.boards.splice(store.boards.indexOf(b) + 1, 0, copy); switchBoard(copy.id); toast('Board duplicated');
   },
   async clearBoard() {
@@ -3277,9 +3279,13 @@ const ACTIONS = {
     const b = board();
     if (!(await confirmBox('Delete board?', `Delete “${b.name}” and everything on it? Class lists are kept.`, 'Delete board', true))) return;
     const idx = store.boards.indexOf(b); store.boards.splice(idx, 1);
-    if (!store.boards.length) store.boards.push(newBoard('My board'));
+    const filler = store.boards.length ? null : newBoard('My board');   // never leave zero boards
+    if (filler) store.boards.push(filler);
     switchBoard(store.boards[Math.max(0, idx - 1)].id);
-    toast(`Deleted “${b.name}”`, { label: 'Undo', fn: () => { store.boards.splice(idx, 0, b); switchBoard(b.id); } });
+    toast(`Deleted “${b.name}”`, { label: 'Undo', fn: () => {
+      if (filler && !filler.widgets.length) store.boards = store.boards.filter(x => x !== filler);
+      store.boards.splice(Math.min(idx, store.boards.length), 0, b); switchBoard(b.id);
+    } });
   },
   resetAll() {
     const cb = h('input', { type: 'checkbox' });
