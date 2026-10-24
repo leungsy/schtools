@@ -168,14 +168,15 @@ select.input{appearance:auto}
 .empty-hint div{max-width:560px;font-size:20px;line-height:1.6}
 .empty-hint strong{color:var(--ink-2);display:block;font-size:24px;margin-bottom:6px}
 .board.dark .empty-hint,.board.dark .empty-hint strong{color:#c9d2d4}
-.dock{grid-row:3;display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 8px 10px;background:#fff;border-top:1px solid var(--line);position:relative;z-index:50}
+/* app bar: a slim line of category tabs along the top edge (pin at its right end), the apps on one full-width row below */
+.dock{grid-row:3;display:flex;flex-direction:column;align-items:stretch;padding:2px 8px 6px;background:#fff;border-top:1px solid var(--line);position:relative;z-index:50}
 .dock>*,.topbar>*{transition:opacity .15s}
-.dock-tabs{display:flex;flex-direction:column;gap:4px;margin-right:4px;padding-right:8px;border-right:1px solid var(--line)}
-.dock-tabs button{border:1px solid transparent;background:none;border-radius:10px;padding:6px 12px;font-size:16px;color:var(--ink-2);text-align:left;white-space:nowrap}
-.dock-tabs button:hover{background:#f4f1ea}
-.dock-tabs button.on{background:var(--accent-soft);border-color:#b9d4d4;color:var(--accent);font-weight:700}
+.dock-tabs{display:flex;align-self:flex-start;gap:4px;margin:0 0 0 6px}
+.dock-tabs button{border:0;border-bottom:3px solid transparent;background:none;border-radius:6px 6px 0 0;padding:2px 10px 1px;font-size:16px;color:var(--ink-2);white-space:nowrap}
+.dock-tabs button:hover{background:#f4f1ea;color:var(--ink)}
+.dock-tabs button.on{border-bottom-color:var(--accent);color:var(--accent);font-weight:700;background:none}
 .dock-apps{display:flex;gap:0;flex-wrap:wrap;justify-content:center}
-.dock-apps button{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:62px;padding:8px 3px 6px;border:1px solid transparent;border-radius:14px;background:none;font-size:16px;color:var(--ink-2)}
+.dock-apps button{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:62px;padding:5px 3px 5px;border:1px solid transparent;border-radius:14px;background:none;font-size:16px;color:var(--ink-2)}
 .dock-apps button:hover{background:#f4f1ea;border-color:var(--line);color:var(--ink)}
 .dock-apps .icon{width:30px;height:30px;color:var(--accent)}
 /* pin (app bar and top bar): a faded icon in the top-right corner; full colour when you point at it, teal when pinned */
@@ -721,6 +722,7 @@ body.focus .stt-box:empty{display:none}
   .w:not(.bare)>.w-body{padding-top:28px}
   .ag-tools{display:flex;position:static;background:none;padding-left:0}
   .rt-dots button{width:22px;height:22px}
+  .dock-tabs button{padding:8px 14px 6px}   /* finger-sized tabs */
   body.bar-auto:not(.dock-pinned) .dock::before{top:9px;width:88px;margin-left:-44px;height:6px}
   body.head-auto:not(.head-pinned) .topbar::after{bottom:9px;width:88px;margin-left:-44px;height:6px}
   body{--strip:24px;--foot-room:16px}
@@ -780,11 +782,11 @@ body.focus .stt-box:empty{display:none}
 kbd{display:inline-block;min-width:1.8em;text-align:center;font-family:var(--font);font-size:16px;font-weight:700;border:1px solid var(--line-2);border-bottom-width:3px;border-radius:7px;padding:1px 7px;margin:0 2px;background:#fff}
 
 /* ---------- 1.10 Messages, motion, small screens ---------- */
-.toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,20px);background:#1f2a2e;color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 30px rgba(0,0,0,.35);border-radius:14px;padding:12px 16px 12px 20px;display:flex;align-items:center;gap:14px;font-size:17px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:120;max-width:calc(100vw - 32px)}
+.toast{position:fixed;left:50%;bottom:124px;transform:translate(-50%,20px);background:#1f2a2e;color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 30px rgba(0,0,0,.35);border-radius:14px;padding:12px 16px 12px 20px;display:flex;align-items:center;gap:14px;font-size:17px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:120;max-width:calc(100vw - 32px)}
 .toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 .toast button{border:1px solid rgba(255,255,255,.4);background:none;color:#fff;border-radius:9px;padding:6px 12px;font-size:16px;white-space:nowrap}
 body.focus .toast,body.bar-auto:not(.dock-pinned):not(.board-empty) .toast{bottom:30px}
-body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,:focus-within)~.toast{bottom:110px}   /* above the bar while it is up */
+body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,:focus-within)~.toast{bottom:124px}   /* above the bar while it is up */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -814,7 +816,7 @@ body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,:focus-within)~.toast{bott
 .pk-stage,.pt-card,.gm-card,.ex-row,.ex-col,.fr-q,.tk .st-cat,.rt-st{background:var(--panel);border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;border-radius:var(--r-in)}
 .pk-stage,.ex-row,.fr-q,.tk .st-cat,.rt-st{border-top-color:transparent}
 .pt-grid,.gm-grid{gap:12px}
-.btn,.ib,.input,.seg,.board-pick select,.tb-btn,.dock-tabs button,.rt-focus,.rt-timer,.vt-track,.vt-fill,.bk-steps li,.sp-strip,.gm-empty,.cm-item,.float-btn{border-radius:var(--r-in)}
+.btn,.ib,.input,.seg,.board-pick select,.tb-btn,.rt-focus,.rt-timer,.vt-track,.vt-fill,.bk-steps li,.sp-strip,.gm-empty,.cm-item,.float-btn{border-radius:var(--r-in)}
 .btn.small,.menu button,.nt-b,.toast button,.sp-seat,.sp-add,.sp-front,.swatch-grid i{border-radius:6px}
 .dock-apps button,.menu,.toast{border-radius:10px}
 .modal{border-radius:14px}
