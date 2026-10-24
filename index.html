@@ -1,463 +1,479 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Launch School Toolbox applications, including FiGeo and ClassScreen.">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Tools for Schools — a collection of browser-based classroom tools.">
-  <title>Tool Hub | App Launcher</title>
-  <!-- Keep your existing assets/favicon.svg file in the same repository. -->
-  <!-- SVG icon, with a PNG fallback (last declaration preferred by many browsers). -->
-  <link rel="icon" type="image/svg+xml" sizes="any" href="./assets/favicon.svg?v=5">
-  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png?v=5">
+  <title>School Toolbox · Tool Hub</title>
+  <link rel="icon" type="image/svg+xml" sizes="any" href="./assets/favicon.svg?v=6">
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png?v=6">
+  <!-- Core stylesheet embedded: index.html works without launcher.css -->
   <style>
-    :root {
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color-scheme: light;
-      --bg:#f5f7fb; --surface:#fff; --surface2:#f8f9fc; --text:#19243a;
-      --muted:#64748b; --line:#e5eaf1; --accent:#295cd6; --accent-soft:#eaf0ff;
-      --icon:#334155; --icon-bg:#f1f5f9; --shadow:0 12px 32px rgba(24,39,68,.055);
-    }
-    [data-theme="dark"] {
-      color-scheme: dark;
-      --bg:#101827; --surface:#1a2537; --surface2:#202d40; --text:#f1f5fc;
-      --muted:#a5b3c7; --line:#324056; --accent:#8cb2ff; --accent-soft:#233c69;
-      --icon:#cbd5e1; --icon-bg:#243244; --shadow:0 12px 32px rgba(0,0,0,.1);
-    }
-    * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--text); }
-    button, input, select { font:inherit; }
-    button { cursor:pointer; }
-    a { color:inherit; text-decoration:none; }
-    a:focus-visible, button:focus-visible, select:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-    .shell { max-width:1180px; width:100%; margin:auto; padding:0 28px; }
-    .topbar { background:var(--surface); border-bottom:1px solid var(--line); }
-    .top-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:76px; }
-    .brand { display:flex; align-items:center; gap:12px; font-weight:750; font-size:19px; letter-spacing:-.5px; }
-    .brand-icon { width:39px; height:39px; flex:0 0 39px; border-radius:12px; display:grid; place-items:center; background:#183a8a; color:white; }
-    [data-theme="dark"] .brand-icon { background:#4469ba; }
-    .top-right { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; min-width:0; }
-    .status-dot { width:7px; height:7px; border-radius:50%; background:#22a06b; }
-    .theme-toggle { width:37px; height:37px; border-radius:10px; display:grid; place-items:center; border:1px solid var(--line); background:var(--surface); color:var(--text); }
-    main { flex:1; }
-    .hero { padding:63px 0 39px; }
-    .eyebrow { font-size:12px; text-transform:uppercase; letter-spacing:2px; font-weight:750; color:var(--accent); }
-    .hero h1 { font-size:clamp(32px,4.1vw,49px); line-height:1.12; letter-spacing:-1.9px; margin:14px 0; }
-    .hero p { margin:0; max-width:610px; line-height:1.65; font-size:16px; color:var(--muted); }
-    .controls[hidden], .empty[hidden] { display:none !important; }
-    .controls { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin:7px 0 27px; }
-    .search { display:flex; align-items:center; gap:12px; flex:1; max-width:420px; min-width:235px; height:46px; padding:0 15px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--muted); }
-    .search:focus-within { outline:2px solid var(--accent); outline-offset:2px; }
-    .search input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font-size:14px; }
-    .search input::placeholder { color:var(--muted); }
-    .filters { display:flex; flex-wrap:wrap; gap:7px; }
-    .filter { padding:9px 14px; border-radius:99px; border:1px solid var(--line); background:var(--surface); color:var(--muted); font-size:13px; }
-    .filter.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:700; }
-    .section-header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:0 0 18px; }
-    .section-header h2 { margin:0; font-size:17px; letter-spacing:-.3px; }
-    .count { color:var(--muted); font-size:13px; }
-    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-    .app { display:flex; flex-direction:column; min-height:229px; padding:23px; border:1px solid var(--line); border-radius:17px; background:var(--surface); box-shadow:var(--shadow); transition:transform .15s, box-shadow .15s, border-color .15s; }
-    .app[href]:hover, .app[href]:focus-visible { transform:translateY(-3px); box-shadow:0 16px 40px rgba(24,39,68,.1); border-color:var(--accent); outline:none; }
-    .app.unavailable { border-style:dashed; box-shadow:none; }
-    .app-top { display:flex; justify-content:space-between; align-items:flex-start; }
-    .app-icon { width:48px; height:48px; border-radius:14px; display:grid; place-items:center; background:var(--icon-bg); color:var(--icon); }
-    .app-icon svg { width:30px; height:30px; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; fill:none; }
-    .arrow { color:var(--muted); font-size:22px; }
-    .passcode-label { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border:1px solid var(--line); border-radius:7px; font-size:11px; font-weight:650; color:var(--muted); background:var(--surface2); }
-    .passcode-label svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-    .unavailable .arrow { font-size:11px; }
-    .app h3 { font-size:17px; line-height:1.25; letter-spacing:-.3px; margin:20px 0 7px; }
-    .app p { flex:1; margin:0 0 19px; font-size:13px; line-height:1.6; color:var(--muted); }
-    .app-meta { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
-    .tag { border:1px solid var(--line); border-radius:6px; padding:5px 9px; background:var(--surface2); color:var(--muted); font-size:11px; font-weight:650; }
-    .last-updated { font-size:11px; color:var(--muted); }
-    .empty { padding:50px 20px; text-align:center; border:1px dashed var(--line); border-radius:16px; color:var(--muted); }
-    .empty strong { display:block; margin-bottom:6px; color:var(--text); }
-    footer { margin-top:75px; padding:0 0 36px; font-size:12px; color:var(--muted); }
-    .footer-links[hidden], .footer-links a[hidden] { display:none !important; }
-    .footer-links { display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px; padding-bottom:25px; }
-    .footer-links-label { margin-right:3px; font-weight:700; color:var(--text); }
-    .footer-links a { display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:650; color:var(--accent); }
-    .footer-links a:hover { text-decoration:underline; }
-    .footer-links svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-    .footer-row { display:flex; justify-content:space-between; flex-wrap:wrap; gap:15px; border-top:1px solid var(--line); padding-top:20px; }
-    @media (max-width:620px) {
-      .shell { padding:0 18px; }
-      .hero { padding:42px 0 32px; }
-      .grid { grid-template-columns:1fr; }
-      .app { min-height:210px; }
-      .search { max-width:none; width:100%; }
-      .top-right .offline-label { display:none; }
-    }
-    @media (prefers-reduced-motion:reduce) { .app, .sprite-art, .sprite-sleep-z { transition:none; animation:none !important; } }
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme:light;
+  --bg:#f5f7fb; --paper:#fff; --paper-muted:#f8fafd; --text:#19243a;
+  --muted:#64748b; --faint:#8b98ac; --line:#e5eaf1;
+  --accent:#295cd6; --accent-soft:#eaf0ff; --icon:#334155;
+  --shadow:0 6px 22px rgba(19,38,75,.035);
+  --header-h:58px;
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:#101827; --paper:#1a2537; --paper-muted:#202d40;
+  --text:#f1f5fc; --muted:#a5b3c7; --faint:#8697af; --line:#324056;
+  --accent:#8cb2ff; --accent-soft:#233c69; --icon:#cbd5e1;
+  --shadow:0 8px 30px rgba(0,0,0,.07);
+}
+* { box-sizing:border-box; }
+html { min-width:0; scroll-padding-top:75px; }
+body { margin:0; background:var(--bg); color:var(--text); min-width:0; overflow-x:clip; min-height:100vh; display:flex; flex-direction:column; }
+a { color:inherit; text-decoration:none; }
+button,input {font:inherit;}
+button {cursor:pointer;}
+button:focus-visible,a:focus-visible,input:focus-visible {outline:2px solid var(--accent);outline-offset:3px;}
+[hidden] {display:none!important;}
+.shell {width:min(100% - 52px,1016px);margin:0 auto;min-width:0;}
+.topbar {position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+.topbar::after {content:"";display:block;height:2px;background:linear-gradient(90deg,var(--accent),transparent 55%);opacity:.6;}
+.top-inner {min-height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.brand {display:flex;align-items:center;gap:10px;font-size:15px;font-weight:790;letter-spacing:-.55px;white-space:nowrap;min-width:0;}
+.brand-mark {flex:0 0 31px;height:31px;width:31px;border-radius:10px;display:grid;place-items:center;background:#244a9a;color:white;}
+[data-theme="dark"] .brand-mark {background:#3b63ac;}
+.brand-mark svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.header-tools {display:flex;gap:7px;align-items:center;min-width:0;}
+.icon-btn {width:33px;height:33px;min-width:33px;display:grid;place-items:center;background:var(--paper);color:var(--text);border:1px solid var(--line);border-radius:10px;}
+.icon-btn:hover{background:var(--paper-muted);border-color:var(--accent)}
+.icon-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8;}
+.mascot-menu-wrap {position:relative;}
+/* Small sprite gallery: visually choose a character without a list of names. */
+.mascot-menu{position:absolute;z-index:80;top:calc(100% + 9px);right:0;width:max-content;max-width:calc(100vw - 20px);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(10,20,38,.17);padding:8px;background:var(--paper);}
+.mascot-menu-title{font-size:10px;letter-spacing:.04em;color:var(--muted);font-weight:750;padding:4px 3px 9px;white-space:nowrap;}
+.mascot-options{display:grid;grid-template-columns:repeat(3,44px);gap:6px;}
+.mascot-choice{position:relative;appearance:none;width:44px;height:44px;min-width:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper-muted);display:grid;place-items:center;padding:3px;color:var(--text);}
+.mascot-choice:hover{background:var(--accent-soft);border-color:var(--accent);}
+.mascot-choice[aria-pressed="true"]{border:2px solid var(--accent);background:var(--accent-soft);}
+.mascot-thumb{display:block;width:36px;height:36px;background-position:left top;background-size:72px 36px;background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;}
+.mascot-thumb--auto{display:grid;place-items:center;font-size:21px;color:var(--accent);}
+.mascot-check{display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;place-items:center;border-radius:50%;font-size:10px;line-height:1;background:var(--accent);color:var(--bg);box-shadow:0 0 0 2px var(--paper);}
+.mascot-choice[aria-pressed="true"] .mascot-check{display:grid;}
+main {flex:1;padding-top:39px;}
+.intro {display:grid;grid-template-columns:minmax(0,1fr) minmax(252px,305px);gap:22px;align-items:center;padding:0 0 28px;}
+.intro-copy {min-width:0;}
+.eyebrow {display:flex;align-items:center;gap:8px;text-transform:uppercase;color:var(--accent);font-size:10px;font-weight:820;letter-spacing:.155em;margin:0 0 10px;}
+.eyebrow::before{content:"";display:inline-block;width:14px;height:2px;background:var(--accent);}
+h1 {font-size:clamp(27px,3.5vw,39px);letter-spacing:-1.6px;line-height:1.09;margin:0 0 9px;font-weight:800;}
+.subtitle {font-size:13px;line-height:1.55;color:var(--muted);margin:0;max-width:500px;}
+.assistant {width:100%;min-width:0;min-height:83px;display:flex;align-items:center;gap:8px;padding:9px 12px 9px 7px;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);position:relative;}
+.assistant::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 15% 40%,var(--accent-soft) 0,transparent 34%);opacity:.35;}
+.assistant>*{z-index:1;}
+.assistant-art-wrap{position:relative;flex:0 0 68px;height:66px;display:grid;place-items:center;}
+.sprite-art {width:64px;height:64px;background-position:0 0;background-size:128px 64px;background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:frames 3.2s steps(2) infinite;}
+.sprite-art[data-state="work"],.sprite-art[data-state="cheer"]{animation-duration:.94s}
+.sprite-art[data-state="sleep"]{animation-duration:2.2s}
+@keyframes frames {from{background-position:0 0}to{background-position:-128px 0}}
+.sprite-sleep-z{position:absolute;right:0;top:0;font-weight:800;font-size:11px;color:var(--accent);animation:float-z 2.5s ease-in-out infinite;}
+@keyframes float-z {50%{transform:translateY(-5px);opacity:.6}}
+.assistant-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
+.assistant-label{font-size:10px;font-weight:760;letter-spacing:.02em;color:var(--muted);}
+.assistant-speech{background:var(--paper-muted);border:1px solid var(--line);border-radius:9px 9px 9px 3px;font-size:11px;line-height:1.35;padding:7px 10px;min-height:31px;overflow-wrap:anywhere;}
+.assistant-hint{color:var(--accent);font-size:10px;line-height:1.3;overflow-wrap:anywhere;min-height:0;}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:13px;}
+.section-title{font-size:15px;font-weight:760;letter-spacing:-.35px;margin:0;}
+.section-kicker{font-size:11px;line-height:1.4;color:var(--muted);margin:5px 0 0;}
+.tool-count{color:var(--muted);font-size:11px;white-space:nowrap;padding-bottom:3px;}
+.directory-tools{display:grid;gap:10px;margin:0 0 14px;}
+.search-shell{display:flex;align-items:center;gap:9px;width:100%;background:var(--paper);border:1px solid var(--line);border-radius:11px;min-height:41px;padding:0 12px;color:var(--muted);}
+.search-shell svg {width:17px;height:17px;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;fill:none;flex:none;}
+.search-shell:focus-within{border-color:var(--accent)}
+.search-shell input{width:100%;min-width:0;padding:9px 0;outline:none!important;border:0;background:none;color:var(--text);font-size:13px;}
+.filters{display:flex;flex-wrap:wrap;gap:6px;min-width:0;}
+.filter{border:1px solid var(--line);background:var(--paper);color:var(--muted);padding:6px 10px;border-radius:9px;font-size:11px;max-width:100%;overflow-wrap:anywhere;}
+.filter[aria-pressed="true"] {border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:750;}
+.app-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;min-width:0;}
+.app-grid[data-many="true"]{grid-template-columns:repeat(3,minmax(0,1fr));}
+.app-card {--tile-bg:#eaf0ff;--tile-color:#2858af;appearance:none;text-align:left;display:flex;flex-direction:column;min-width:0;min-height:143px;width:100%;padding:17px 19px;background:var(--paper);border:1px solid var(--line);border-radius:15px;color:var(--text);box-shadow:var(--shadow);transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;}
+.app-card::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--tile-color);opacity:.56;}
+.app-card:hover,.app-card:focus-visible{transform:translateY(-2px);border-color:var(--tile-color);box-shadow:0 10px 26px rgba(20,39,72,.085);}
+.app-card[data-sample="true"]{border-style:dashed;box-shadow:none;}
+.app-main{display:flex;align-items:start;gap:13px;min-width:0;flex:1;}
+.app-icon{height:45px;width:45px;flex:0 0 45px;display:grid;place-items:center;border-radius:12px;background:var(--tile-bg);color:var(--tile-color);}
+.app-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.app-body{flex:1;min-width:0;}
+.app-title-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.app-name{font-size:16px;letter-spacing:-.35px;font-weight:760;line-height:1.25;overflow-wrap:anywhere;}
+.app-arrow{font-size:16px;line-height:1;color:var(--faint);flex:none;}
+.app-desc{margin:7px 0 0;color:var(--muted);line-height:1.45;font-size:12px;max-width:35ch;}
+.app-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:15px 0 0 58px;}
+.app-category{font-size:10px;color:var(--muted);font-weight:700;background:var(--paper-muted);border:1px solid var(--line);border-radius:6px;padding:3px 7px;}
+.app-action{color:var(--faint);font-size:10px;}
+.empty{background:var(--paper);border:1px dashed var(--line);border-radius:13px;padding:24px;font-size:13px;color:var(--muted);text-align:center;}
+footer{padding:25px 0 28px;margin-top:32px;color:var(--muted);font-size:11px;}
+.footer-inner{border-top:1px solid var(--line);padding-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.modal{max-width:390px;width:100%;background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:22px;box-shadow:0 25px 70px rgba(2,6,23,.25);}
+.modal h2{font-size:18px;margin:0 0 9px;}
+.modal p{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 14px;}
+@media(max-width:850px){.shell{width:min(100% - 36px,1016px)}.intro{grid-template-columns:minmax(0,1fr) minmax(225px,280px)}.app-grid[data-many="true"]{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:660px){
+  :root{--header-h:53px;}
+  .shell{width:min(100% - 28px,1016px);}
+  .top-inner{gap:6px;}
+  .brand{font-size:14px;gap:7px;}
+  .brand-mark{height:29px;width:29px;flex-basis:29px;border-radius:9px;}
+  .header-tools{gap:5px;}
+  main{padding-top:24px;}
+  .intro{grid-template-columns:minmax(0,1fr);gap:14px;padding-bottom:23px;}
+  .eyebrow{margin-bottom:8px;}
+  h1{font-size:28px;letter-spacing:-1.05px;}
+  .subtitle{font-size:12px;}
+  .assistant{min-height:68px;max-width:none;padding:3px 11px 3px 5px;border-radius:13px;gap:7px;}
+  .assistant-art-wrap{flex-basis:56px;height:60px;}
+  .sprite-art{width:54px;height:54px;background-size:108px 54px;animation-name:frames-mobile;}
+  @keyframes frames-mobile {from{background-position:0 0}to{background-position:-108px 0}}
+  .assistant-speech{padding:6px 9px;min-height:28px;}
+  .section-head{margin-bottom:12px;}
+  .app-grid,.app-grid[data-many="true"]{grid-template-columns:1fr;gap:9px;}
+  .app-card{min-height:126px;padding:15px 16px;}
+  .app-desc{max-width:none;}
+  .app-meta{margin-top:11px;}
+  footer{margin-top:19px;}
+}
+@media(max-width:360px){.shell{width:min(100% - 22px,1016px)}.brand{font-size:13px}.hub-link{display:none}.icon-btn{height:31px;width:31px;min-width:31px}.app-card{padding:13px}.app-main{gap:10px}.app-meta{margin-left:55px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-    /* Responsive sticky mascot/search layout, with assistant selection in the fixed header. */
-    :root { --sticky-header-height:76px; }
-    .topbar { position:sticky; top:0; z-index:250; }
-    .hero { padding:46px 0 28px; }
-    .sticky-workspace {
-      position:sticky; top:var(--sticky-header-height); z-index:200;
-      display:flex; align-items:center; gap:16px;
-      padding:9px 0 10px; border-bottom:1px solid var(--line); background:var(--bg);
-    }
-    .companion {
-      display:flex; flex:0 0 304px; min-width:0; align-items:center; gap:8px;
-      min-height:102px; padding:6px 10px; border:1px solid var(--line);
-      border-radius:15px; background:linear-gradient(135deg,#fffdf9,#f4f7fa);
-      box-shadow:var(--shadow);
-    }
-    [data-theme="dark"] .companion { background:linear-gradient(135deg,#222d40,#1a2435); }
-    .companion-figure { position:relative; flex:0 0 86px; display:grid; place-items:center; }
-    .sprite-art{width:72px;height:72px;background-repeat:no-repeat;background-position:0 0;background-size:144px 72px;image-rendering:pixelated;image-rendering:crisp-edges;animation:sprite-frames 3.2s steps(2) infinite}
-    .sprite-art[data-state=work],.sprite-art[data-state=cheer]{animation-duration:.95s}
-    .sprite-art[data-state=sleep]{animation-duration:2s}
-    @keyframes sprite-frames{from{background-position:0 0}to{background-position:-144px 0}}
-    .sprite-sleep-z{position:absolute;top:0;right:0;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:1px;animation:sleep-z-float 2.6s ease-in-out infinite;pointer-events:none}
-    .sprite-sleep-z[hidden]{display:none!important}
-    @keyframes sleep-z-float{0%,100%{opacity:.5;transform:translateY(3px)}50%{opacity:1;transform:translateY(-2px)}}
-    .companion-detail { display:flex; flex:1; align-items:flex-start; min-width:0; }
-    .companion-bubble {
-      position:relative; max-width:100%; min-height:42px;
-      padding:10px 13px; border:1px solid var(--line);
-      border-radius:15px 15px 15px 5px;
-      background:var(--surface); color:var(--text);
-      box-shadow:0 2px 7px rgba(24,39,68,.05);
-      font-size:11px; line-height:1.4;
-    }
-    /* Small speech tail points from the bubble towards the mascot. */
-    .companion-bubble::before {
-      content:""; position:absolute; left:-6px; top:19px;
-      width:11px; height:11px; transform:rotate(45deg);
-      background:var(--surface); border-left:1px solid var(--line); border-bottom:1px solid var(--line);
-    }
-    .sticky-search { display:flex; flex:1; min-width:0; }
-    .sticky-search .search { min-width:0; max-width:none; width:100%; }
-    .controls { margin:15px 0 24px; }
-    /* Fixed (not just sticky) header on tablets and phones. */
-    @media (max-width:1024px) {
-      .topbar { position:fixed; inset:0 0 auto 0; width:100%; }
-      main { padding-top:var(--sticky-header-height); }
-    }
-    @media (max-width:850px) {
-      .sticky-workspace { gap:10px; }
-      .companion { flex-basis:254px; }
-      .companion-figure { flex-basis:72px; }
-      .sprite-art{width:64px;height:64px;background-size:128px 64px}
-      @keyframes sprite-frames{from{background-position:0 0}to{background-position:-128px 0}}
-    }
-    @media (max-width:660px) {
-      :root { --sticky-header-height:64px; }
-      .top-inner { min-height:64px; gap:7px; }
-      .brand { gap:7px; font-size:16px; }
-      .brand-icon { width:32px; height:32px; flex-basis:32px; border-radius:9px; }
-      .theme-toggle { width:36px; height:36px; flex:0 0 36px; }
-      .top-right { gap:6px; }
-      .top-right .status-dot { display:none; }
-      .mascot-toggle { width:36px; height:36px; }
-      .hero { padding:26px 0 18px; }
-      .hero h1 { margin:8px 0 10px; }
-      .hero p { font-size:14px; }
-      .sticky-workspace { flex-direction:column; align-items:stretch; gap:7px; padding:6px 0 9px; }
-      .companion { width:100%; flex:0 0 auto; min-height:66px; gap:9px; padding:4px 9px; }
-      .companion-figure { flex:0 0 56px; }
-      .sprite-art{width:54px;height:54px;background-size:108px 54px;animation-name:sprite-frames-mobile}
-      @keyframes sprite-frames-mobile{from{background-position:0 0}to{background-position:-108px 0}}
-      .companion-bubble { min-height:32px; padding:7px 11px; }
-      .companion-bubble::before { top:11px; }
-      .sticky-search .search { min-height:42px; height:42px; }
-      .controls { margin:12px 0 18px; }
-      .filters { flex-wrap:wrap; overflow:visible; padding:2px 0 5px; max-width:100%; }
-      .filter { white-space:normal; max-width:100%; overflow-wrap:anywhere; }
-    }
-  
-    /* Shared compact assistant selector. Entries are generated from SETTINGS.MASCOTS. */
-    .mascot-menu-wrap{position:relative;flex:0 0 auto}
-    .mascot-toggle{width:37px;height:37px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;background:var(--surface);color:var(--text)}
-    .mascot-toggle:hover,.mascot-toggle[aria-expanded="true"]{background:var(--surface2);border-color:var(--accent)}
-    .mascot-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-    .mascot-menu[hidden]{display:none!important}
-    .mascot-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:300;min-width:188px;max-height:min(65vh,400px);overflow-y:auto;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 14px 32px rgba(24,39,68,.16)}
-    .mascot-menu-title{padding:7px 9px 8px;color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
-    .mascot-choice{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 9px;gap:12px;border:0;border-radius:8px;background:transparent;color:var(--text);font-size:13px;text-align:left}
-    .mascot-choice:hover,.mascot-choice:focus-visible{background:var(--surface2)}
-    .mascot-choice[aria-pressed="true"]{color:var(--accent);font-weight:700}
-    .mascot-check{width:15px;text-align:center;font-weight:700}
-    @media(max-width:660px){.mascot-toggle{height:36px;width:36px}}
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="shell top-inner">
-      <a class="brand" href="./" aria-label="Tool Hub home">
-        <span class="brand-icon" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 9V7.5A2.5 2.5 0 0 1 13.5 5h5A2.5 2.5 0 0 1 21 7.5V9"/><rect x="3.5" y="9" width="25" height="18" rx="2.5"/><path d="M3.5 16h25M14 16v4h4v-4"/></svg>
-        </span>
-        <span>Tool Hub<span style="color:var(--accent)">.</span></span>
-      </a>
-      <div class="top-right">
-        <span class="status-dot" aria-hidden="true"></span>
-        <span class="offline-label">Your app collection</span>
-        <div class="mascot-menu-wrap" id="mascotMenuWrap">
-          <button id="mascotToggle" class="mascot-toggle" type="button" title="Choose assistant" aria-label="Choose assistant" aria-expanded="false" aria-controls="mascotMenu">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14.5c1 1.3 2.3 2 4 2s3-.7 4-2"/><path d="M8.5 9h.01M15.5 9h.01" stroke-width="2.5"/></svg>
-          </button>
+      <a href="./index.html" class="brand" aria-label="School Toolbox home"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2.5"/><path d="M8 7V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V7M3 13h18M10 13v3h4v-3"/></svg></span><span>Tool Hub</span></a>
+      <div class="header-tools">
+        <div class="mascot-menu-wrap">
+          <button type="button" class="icon-btn" id="mascotToggle" aria-label="Choose assistant" title="Choose assistant" aria-controls="mascotMenu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.3 2.3 4 2.3s3-.8 4-2.3M8.5 9h.01M15.5 9h.01" stroke-width="2.3"/></svg></button>
           <div id="mascotMenu" class="mascot-menu" aria-label="Choose assistant" hidden></div>
         </div>
-        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">☾</button>
+        <button id="themeToggle" type="button" class="icon-btn" aria-label="Switch theme" title="Switch theme">☾</button>
       </div>
     </div>
   </header>
-
   <main class="shell">
-    <section class="hero">
-      <div class="eyebrow">Digital Workspace</div>
-      <h1>Tools for Schools</h1>
-      <p>Note: These are offline apps. Save/Export your work before closing the app.</p>
-    </section>
-    <div class="sticky-workspace" role="region" aria-label="School assistant and tool search">
-      <aside class="companion" aria-label="School assistant">
-        <div class="companion-figure" aria-hidden="true"><div id="spriteArt" class="sprite-art" data-state="idle"></div><span id="sleepZs" class="sprite-sleep-z" hidden>Zzz</span></div>
-        <div class="companion-detail">
-          <div id="companionBubble" class="companion-bubble" role="status" aria-live="polite">Ready to explore?</div>
-        </div>
+    <section class="intro" aria-label="Introduction">
+      <div class="intro-copy"><p class="eyebrow">SCHOOL TOOLBOX</p><h1>Tools for the classroom</h1><p class="subtitle">Everything you need, a click away.</p></div>
+      <aside class="assistant" aria-label="Pixel-art assistant">
+        <div class="assistant-art-wrap" aria-hidden="true"><div class="sprite-art" id="spriteArt" data-state="idle"></div><span id="sleepZs" class="sprite-sleep-z" hidden>Zzz</span></div>
+        <div class="assistant-copy"><span class="assistant-label">Your companion</span><span class="assistant-speech" id="companionBubble" role="status" aria-live="polite">Ready when you are!</span><span class="assistant-hint" id="assistantHint" aria-live="polite"></span></div>
       </aside>
-      <div class="sticky-search">
-        <label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Search tools, categories or tags..." autocomplete="off" aria-label="Search tools"></label>
+    </section>
+    <section class="directory" aria-label="Applications">
+      <div class="section-head"><div><h2 class="section-title">Applications</h2><p class="section-kicker">Choose a tool to get started</p></div><span class="tool-count" id="appCount">2 tools</span></div>
+      <div class="directory-tools">
+        <label class="search-shell" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" id="searchInput" autocomplete="off" placeholder="Search tools and categories" aria-label="Search tools"></label>
+        <div id="filtersContainer" hidden><div id="filters" class="filters" aria-label="Filter tools by category"></div></div>
       </div>
-    </div>
-    <section aria-label="Tool collection">
-      <div class="controls" id="controls" hidden>
-        <div class="filters" id="filters" aria-label="Filter by category"></div>
+      <div id="appGrid" class="app-grid" aria-live="polite">
+        <a class="app-card" href="./figeo/" target="_blank" rel="noopener noreferrer" style="--tile-bg:#e5f4ed;--tile-color:#237b57" aria-label="Open FiGeo: Create geographical maps and figures">
+          <div class="app-main"><div class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 4v15M15 7v15"/></svg></div><div class="app-body"><div class="app-title-row"><span class="app-name">FiGeo</span><span class="app-arrow" aria-hidden="true">↗</span></div><p class="app-desc">Create geographical maps and figures.</p></div></div>
+          <div class="app-meta"><span class="app-category">Geography</span><span class="app-action">Open tool</span></div>
+        </a>
+        <a class="app-card" href="./crscreen/" target="_blank" rel="noopener noreferrer" style="--tile-bg:#ebefff;--tile-color:#4a60bb" aria-label="Open ClassScreen: Bring classroom activities onto one screen">
+          <div class="app-main"><div class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="15" rx="2"/><path d="M2 22h20M6 9h8M6 12h5M15 15l4-4"/></svg></div><div class="app-body"><div class="app-title-row"><span class="app-name">ClassScreen</span><span class="app-arrow" aria-hidden="true">↗</span></div><p class="app-desc">Bring classroom activities onto one screen.</p></div></div>
+          <div class="app-meta"><span class="app-category">Classroom</span><span class="app-action">Open tool</span></div>
+        </a>
       </div>
-      <div class="section-header"><h2>Explore tools</h2><span id="count" class="count" aria-live="polite"></span></div>
-      <div class="grid" id="appGrid"></div>
-      <div id="empty" class="empty" hidden><strong>No matching tools</strong>Try another keyword or category.</div>
+      <div id="empty" class="empty" hidden>No matching tools. Try another keyword or category.</div>
     </section>
   </main>
-
-  <footer>
-    <div class="shell">
-      <nav id="otherCollections" class="footer-links" aria-label="Other tool collections" hidden>
-        <span class="footer-links-label">Other collections</span>
-        <a id="studentLink" target="_blank" rel="noopener noreferrer">Student-facing tools <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-        <a id="funLink" target="_blank" rel="noopener noreferrer">Just for fun! <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-        <a id="privateLink" target="_blank" rel="noopener noreferrer">Private Collection <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></a>
-      </nav>
-      <div class="footer-row"><span>© <span id="year"></span> Tool Hub · LSY</span><span>Updated Oct 2026</span></div>
-    </div>
-  </footer>
-
-  <script src="./assets/mascot-engine.js"></script>
+  <footer><div class="shell footer-inner"><span>© <span id="year">2026</span> Tool Hub · LSY</span><span>School Toolbox</span></div></footer>
+  <script>window.LAUNCHER_SETTINGS={"ID":"school","DEFAULT_MASCOT":"volcano","FOLLOW_THEME":false,"MASCOTS":{"volcano":{"enabled":true,"chip":"Volcano","label":"Volcano assistant","idle":["Ready when you are!","Explore something new.","Lava lot of possibilities!"],"work":["Finding your tools…"],"cheer":["Right on!","Good choice!"],"wake":["Back for more?"],"gate":"Welcome!"},"compass":{"enabled":true,"chip":"Compass","label":"Compass assistant","idle":["Where to next?","Let’s chart a course."],"work":["Finding our bearings…"],"cheer":["Right on course!"],"wake":["Back to exploring?"],"gate":"Welcome!"},"paperclip":{"enabled":true,"chip":"Paperclip","label":"Paperclip assistant","idle":["Need a hand?","Let’s get organised."],"work":["Sorting tools…"],"cheer":["Nicely done!"],"wake":["Back again?"],"gate":"Welcome!"}},"REQUIRE_VALID_DATE":true,"URLS":{"CLASS_SCREEN":"./crscreen/","FIGEO":"./figeo/","HALP":"","TOOL_4":""},"APPS":[{"key":"FIGEO","visible":true,"title":"FiGeo","description":"Create geographical maps and figures.","category":"Geography","icon":"map","lastUpdated":"2026-10-18","tags":["Map","Figures"],"companionTip":"Prepare geographical maps and figures for lessons, worksheets and practice papers."},{"key":"CLASS_SCREEN","visible":true,"title":"ClassScreen","description":"Bring classroom activities onto one screen.","category":"Classroom","icon":"whiteboard","lastUpdated":"2026-10-24","tags":["Teaching","Lesson"],"companionTip":"Display and manage classroom activities together on one screen."},{"key":"HALP","visible":false,"title":"HALP","description":"Plan personnel deployments.","category":"Planning","icon":"deployment","lastUpdated":"2026-10-18"},{"key":"TOOL_4","visible":false,"title":"Tool 4","description":"New application.","category":"Other","icon":"tool","lastUpdated":"DATE"}],"SPRITE_VERSION":"3","SPRITE_BASE":"./assets/sprites/"};</script>
+  <!-- Mascot engine embedded for reliable single-file deployment -->
   <script>
-    // ==================================================================
-    // EDIT HERE — ALL APP DETAILS, URLS AND COLLECTION SETTINGS
-    // A local folder: './halp/'
-    // A separate GitHub Pages repository: 'https://USERNAME.github.io/repo/'
-    // An app appears only if visible:true AND its URL and lastUpdated are valid.
-    // Set visible:false to keep a configured app hidden without deleting it.
-    // ClassScreen's provisional date below is a publishing placeholder;
-    // replace it with the actual app update date when known.
-    // Setting requiresPasscode:true only changes the visual card label.
-    // Encrypt the destination HTML independently using StatiCrypt.
-    // ==================================================================
-    const SETTINGS = {
-      SHOW_OTHER_COLLECTIONS: false,   // true to show ready footer links
-      SHOW_DRAFT_TOOLS: false,          // optional preview: show incomplete, disabled cards
-      DEFAULT_MASCOT: 'volcano',        // volcano | compass | paperclip
-      SPRITE_VERSION: '3',              // bump when you replace PNG files (cache refresh)
-      SPRITE_BASE: './assets/sprites/',
-      // Mascot registry — add a new entry here, then upload five PNGs to assets/sprites/.
-      // `enabled: false` keeps a character installed but hidden from the selector.
-      // Every character has 5 states; Work/Cheer/Wake accept one message or an array.
-      MASCOTS: {
-        volcano: {
-          enabled: true, chip: 'Volcano', label: 'Volcano assistant',
-          idle: ['Ready to explore?', 'Lava lot of ideas today!', "Let's uncover something new.", 'Digging into it.', "You're on fire!", 'Back for more?'],
-          work: ['Digging into it…', "Something's bubbling!"],
-          cheer: ["You're on fire!", 'Eureka!'],
-          wake: ['Back for more?', "I'm fired up!"],
-          gate: 'Volcano on duty!'
-        },
-        compass: {
-          enabled: true, chip: 'Compass', label: 'Compass assistant',
-          idle: ['Where to next?', "Let's chart a course!", 'Finding our bearings…', 'On the right track!', "You've found it!", 'Ready to navigate?'],
-          work: ['Finding our bearings…', 'Checking directions…'],
-          cheer: ['Right on course!', "You've found it!"],
-          wake: ['Ready to navigate?', 'Back on the map?'],
-          gate: 'Compass on duty!'
-        },
-        paperclip: {
-          enabled: true, chip: 'Paperclip', label: 'Paperclip assistant',
-          idle: ['Need a hand?', "Let's get things together.", 'Sorting things out…', "I've got this clipped!", 'Oh, hello again!', 'Something to organise?'],
-          work: ['Sorting things out…', 'Let me check!'],
-          cheer: ["I've got this clipped!", 'Nice work!'],
-          wake: ['Oh, hello again!', 'Something to organise?'],
-          gate: 'Paperclip on duty!'
-        },
-        hedgehog: {
-          enabled: false, chip: 'Hedgehog', label: 'Hedgehog assistant',
-          idle: ['Ready when you are!', 'Living on the edge!', "Let's get to the point.", 'Stay sharp!', 'Small spikes, big ideas.', 'A little prickly, but productive.'],
-          work: ['Looking for tools…', 'Getting to the point…'],
-          cheer: ["Let's go!", 'Looking sharp!'],
-          wake: ['Back again?', 'Ready when you are!'],
-          gate: 'Hedgehog on duty!'
-        },
-        badger: {
-          enabled: false, chip: 'Badger', label: 'Badger assistant',
-          idle: ['Ready when you are!', 'Digging into the details.', "Let's dig deeper!", 'On the scent of a good idea.', 'No badgering, just brainstorming.', 'Time to get things sorted.'],
-          work: ['Digging into the details…', 'Looking for tools…'],
-          cheer: ["Let's go!", 'Well dug!'],
-          wake: ['Back again?', 'Back to digging?'],
-          gate: 'Badger on duty!'
-        },
-      },
+/* Mascot engine v1 — same file for School Toolbox and Personal Hub.
+   To add a character, edit only SETTINGS.MASCOTS and upload five sprite sheets.
+   No dependencies, network APIs, or server code. */
+(function () {
+  'use strict';
+  const STATES = ['idle', 'work', 'cheer', 'wake', 'sleep'];
+  const STORE = (key, value) => { try { if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value); } catch (_) {} };
+  const READ = key => { try { return localStorage.getItem(key); } catch (_) { return null; } };
+  const firstMessage = (message, index) => Array.isArray(message) ? (message[index % (message.length || 1)] || '') : (message || '');
 
-      URLS: {
-        HALP: '',                       // Hidden and unpublished; restore './halp/' when ready
-        CLASS_SCREEN: './crscreen/', // ClassScreen folder within this repository
-        FIGEO: './figeo/',                // FiGeo app inside this Toolbox repository
-        TOOL_4: '',
-        STUDENT_TOOLS: 'https://user.github.io/students/', // Separate repository
-        JUST_FOR_FUN: './just-for-fun/',                  // Local folder
-        PRIVATE_COLLECTION: ''        // e.g. 'https://user.github.io/planning/' (StatiCrypt-encrypted landing page)
-      },
-
-      APPS: [
-        { key:'HALP', visible:false, title:'HALP', description:'A deployment planner for organising personnel assignments and reviewing constraints.', category:'Planning', icon:'deployment', lastUpdated:'2026-10-18', requiresPasscode:false },
-        { key:'CLASS_SCREEN', visible:true, title:'ClassScreen', description:'A digital classroom screen for presenting and managing classroom activities.', category:'Classroom', icon:'whiteboard', lastUpdated:'2026-10-24', requiresPasscode:false }, // Provisional: replace with actual update date
-        { key:'FIGEO', visible:true, title:'FiGeo', description:'Plot geographical figures and maps for exam and practice papers. FiGeo it out!', category:'Geography', icon:'map', lastUpdated:'2026-10-18', requiresPasscode:false },
-        { key:'TOOL_4', visible:false, title:'Tool 4', description:'Describe another school tool here.', category:'School tools', icon:'tool', lastUpdated:'DATE', requiresPasscode:false }
-      ]
+  function create({ settings, spriteArt, bubble, menu, toggle, nameElement, sleepZs,
+                    gateSprite, gateBubble, storageKey, followTheme = false,
+                    isPaused = () => false }) {
+    const available = Object.entries(settings.MASCOTS || {})
+      .filter(([id, cfg]) => cfg && cfg.enabled !== false && /^[a-z][a-z0-9_-]*$/.test(id));
+    if (!available.length) throw new Error('Enable at least one mascot in SETTINGS.MASCOTS.');
+    const lookup = Object.fromEntries(available);
+    const defaultId = () => {
+      const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+      const themeChoice = settings.DEFAULT_MASCOT_BY_THEME?.[theme];
+      const choice = themeChoice || settings.DEFAULT_MASCOT;
+      return lookup[choice] ? choice : available[0][0];
     };
-    // ====================== END EDITABLE SETTINGS =======================
-
-    // Check URLs and genuine YYYY-MM-DD dates. This controls publication.
-    function validLink(value) {
-      const url = typeof value === 'string' ? value.trim() : '';
-      return /^(https?:\/\/[^\s/]+(?:\/[^\s]*)?|\.{1,2}\/\S+|\/\S+)$/i.test(url) ? url : '';
-    }
-    function validDate(value) {
-      if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-      const date = new Date(`${value}T00:00:00Z`);
-      return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0,10) === value;
-    }
-    const linkFor = key => validLink(SETTINGS.URLS[key]);
-    const ready = app => Boolean(linkFor(app.key) && validDate(app.lastUpdated));
-    const apps = SETTINGS.APPS.filter(app => app.visible === true && (ready(app) || SETTINGS.SHOW_DRAFT_TOOLS));
-
-    const ICONS = {
-      deployment: '<svg viewBox="0 0 32 32"><circle cx="16" cy="5.5" r="3"/><path d="M9.5 15v-.8c0-3.3 2.4-5.2 6.5-5.2s6.5 1.9 6.5 5.2v.8H9.5zM16 15v5M7 23v-3h18v3"/><rect x="3.5" y="23" width="7" height="6" rx="1.2"/><rect x="21.5" y="23" width="7" height="6" rx="1.2"/></svg>',
-      whiteboard: '<svg viewBox="0 0 32 32"><rect x="3.5" y="4.5" width="25" height="20" rx="1.8"/><path d="M2 27h28M7.5 11h9M7.5 15h6.5M20 18l4-4M19.5 20l1.1-2.6M24 14l-2.6 1.1"/><path d="M22 24.5h5v2h-5z" fill="currentColor" stroke="none"/></svg>',
-      map: '<svg viewBox="0 0 32 32"><path d="M3.5 7.5 12 4l8 4 8.5-3.5v20L20 28l-8-4-8.5 3.5z"/><path d="M12 4v20M20 8v20"/><path d="M6.5 14.5 9.5 13M22.5 18 25.5 16.8"/></svg>',
-      tool: '<svg viewBox="0 0 32 32"><rect x="4" y="5" width="24" height="22" rx="3"/><path d="M4 11h24M9 8h.1M13 8h.1M11 17h10M11 21h7"/></svg>',
-      plus: '<svg viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" rx="6"/><path d="M16 10v12M10 16h12"/></svg>'
+    let stored = READ(storageKey);
+    let chosenId = lookup[stored] ? stored : null;
+    let state = 'idle';
+    let stateMessageNumber = {work:-1, cheer:-1, wake:-1};
+    let idleIndex = 0;
+    let waking = false;
+    let sleepTimer, stateTimer, wakeTimer;
+    let lastMovement = 0;
+    let paused = Boolean(isPaused());
+    const mascotId = () => chosenId || defaultId();
+    const current = () => lookup[mascotId()];
+    const path = (id, motion) => `${settings.SPRITE_BASE || './assets/sprites/'}${id}-${motion}.png?v=${encodeURIComponent(settings.SPRITE_VERSION || '1')}`;
+    const updateImage = (element, id, motion) => {
+      if (!element) return;
+      const url = path(id, motion);
+      if (element.dataset.requestedSprite !== url) {
+        element.dataset.requestedSprite = url;
+        element.style.backgroundImage = `url("${url}")`;
+      }
     };
-    const LOCK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
-
-    const grid = document.getElementById('appGrid');
-    const search = document.getElementById('searchInput');
-    const filters = document.getElementById('filters');
-    let category = 'All';
-
-
-    // Shared mascot engine: all characters and messages are defined in SETTINGS.MASCOTS.
-    const mascotSystem = ToolboxMascots.create({
-      settings: SETTINGS,
-      spriteArt: document.getElementById('spriteArt'),
-      bubble: document.getElementById('companionBubble'),
-      sleepZs: document.getElementById('sleepZs'),
-      menu: document.getElementById('mascotMenu'),
-      toggle: document.getElementById('mascotToggle'),
-      storageKey: 'school-toolbox-mascot'
-    });
-    const themeStorageKey = 'school-toolbox-theme';
-    const saveValue = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
-    const loadValue = key => { try { return localStorage.getItem(key); } catch { return null; } };
-
-    // Search is always available in the sticky dock; category filters appear with 3+ visible tools.
-    document.getElementById('controls').hidden = apps.length < 3;
-    for (const name of ['All', ...new Set(apps.map(app => app.category))]) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'filter' + (name === category ? ' active' : '');
-      button.textContent = name;
-      button.setAttribute('aria-pressed', String(name === category));
-      button.addEventListener('click', () => {
-        category = name;
-        for (const b of filters.children) {
-          b.classList.toggle('active', b.textContent === name);
-          b.setAttribute('aria-pressed', String(b.textContent === name));
+    const updateChoices = () => {
+      if (!menu) return;
+      for (const button of menu.querySelectorAll('[data-mascot]')) {
+        const id = button.dataset.mascot;
+        const selected = id === (chosenId || (followTheme ? 'auto' : defaultId()));
+        button.setAttribute('aria-pressed', String(selected));
+        const check = button.querySelector('.mascot-check');
+        if (check) check.textContent = selected ? '✓' : '';
+      }
+    };
+    function refresh() {
+      const id = mascotId(), cfg = current();
+      const motion = state === 'idle' && waking ? 'wake' : state;
+      updateImage(spriteArt, id, paused ? 'idle' : motion);
+      if (spriteArt) spriteArt.dataset.state = paused ? 'idle' : motion;
+      if (nameElement) nameElement.textContent = cfg.label || `${cfg.chip || id} assistant`;
+      if (sleepZs) sleepZs.hidden = paused || state !== 'sleep';
+      const msg = paused ? '' : state === 'sleep' ? '' : state === 'idle' && waking
+        ? firstMessage(cfg.wake, stateMessageNumber.wake)
+        : state === 'idle' ? firstMessage(cfg.idle, idleIndex)
+        : firstMessage(cfg[state], stateMessageNumber[state] || 0);
+      if (bubble) {
+        bubble.textContent = msg || ' ';
+        bubble.style.visibility = msg ? 'visible' : 'hidden';
+      }
+      updateImage(gateSprite, id, 'idle');
+      if (gateBubble) gateBubble.textContent = cfg.gate || `${cfg.chip || id} on duty!`;
+      updateChoices();
+    }
+    function cancelTimers() { clearTimeout(sleepTimer); clearTimeout(stateTimer); clearTimeout(wakeTimer); }
+    function enterState(next) {
+      if (paused) return;
+      state = next;
+      if (next !== 'idle') {
+        waking = false;
+        clearTimeout(wakeTimer);
+        if (next in stateMessageNumber) stateMessageNumber[next] += 1;
+      }
+      refresh();
+    }
+    function activity() {
+      if (paused) return;
+      clearTimeout(sleepTimer);
+      if (state === 'sleep') {
+        state = 'idle';
+        waking = true;
+        stateMessageNumber.wake += 1;
+        refresh();
+        clearTimeout(wakeTimer);
+        wakeTimer = setTimeout(() => { waking = false; if (state === 'idle') refresh(); }, 4200);
+      }
+      sleepTimer = setTimeout(() => { clearTimeout(stateTimer); enterState('sleep'); }, 60000);
+    }
+    function shortState(next, length) {
+      if (paused) return;
+      clearTimeout(stateTimer);
+      enterState(next);
+      activity();
+      stateTimer = setTimeout(() => { if (state === next) enterState('idle'); }, length);
+    }
+    function openMenu(open) {
+      if (!menu || !toggle) return;
+      menu.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      if (open) (menu.querySelector('[aria-pressed="true"]') || menu.querySelector('[data-mascot]'))?.focus();
+    }
+    function select(id) {
+      if (id === 'auto' && followTheme) chosenId = null;
+      else if (lookup[id]) chosenId = id;
+      else return;
+      STORE(storageKey, chosenId);
+      cancelTimers();
+      state = 'idle'; waking = false; idleIndex = 0;
+      refresh(); activity(); openMenu(false);
+      toggle?.focus();
+    }
+    if (menu && toggle) {
+      menu.replaceChildren();
+      const title = document.createElement('div');
+      title.className = 'mascot-menu-title'; title.textContent = 'Choose assistant';
+      menu.append(title);
+      const entries = followTheme ? [['auto', {chip:'Follow theme'}], ...available] : available;
+      const options = document.createElement('div'); options.className = 'mascot-options';
+      entries.forEach(([id, cfg]) => {
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'mascot-choice';
+        button.dataset.mascot = id;
+        const label = cfg.chip || id;
+        button.setAttribute('aria-label', id === 'auto' ? 'Follow theme' : `Choose ${label} assistant`);
+        button.title = label; // Names remain available on hover without visual clutter.
+        const thumb = document.createElement('span');
+        thumb.className = 'mascot-thumb'; thumb.setAttribute('aria-hidden','true');
+        if (id === 'auto') {
+          thumb.classList.add('mascot-thumb--auto'); thumb.textContent = '◐';
+        } else {
+          updateImage(thumb, id, 'idle'); // Show the first frame of the actual idle sprite.
         }
-        mascotSystem.work();
-        renderApps();
+        const check = document.createElement('span'); check.className = 'mascot-check'; check.setAttribute('aria-hidden','true');
+        button.append(thumb, check);
+        button.addEventListener('click', () => select(id));
+        options.append(button);
       });
+      menu.append(options);
+      toggle.addEventListener('click', () => openMenu(menu.hidden));
+      document.addEventListener('pointerdown', event => {
+        if (!menu.hidden && !menu.parentElement.contains(event.target)) openMenu(false);
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !menu.hidden) { openMenu(false); toggle.focus(); }
+      });
+    }
+    document.addEventListener('pointermove', () => {
+      const now = Date.now();
+      if (now - lastMovement > 1000) { lastMovement = now; activity(); }
+    }, {passive:true});
+    for (const name of ['pointerdown','keydown','scroll','touchstart'])
+      document.addEventListener(name, activity, {passive:true});
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) activity(); });
+    setInterval(() => {
+      if (paused || state !== 'idle' || waking) return;
+      idleIndex++; refresh();
+    }, 14000);
+    function setPaused(value) {
+      paused = Boolean(value);
+      cancelTimers();
+      state = 'idle'; waking = false;
+      refresh();
+      if (!paused) activity();
+    }
+    refresh();
+    if (!paused) activity();
+    return {
+      refresh, activity, setPaused, select,
+      work: () => shortState('work', 1600),
+      cheer: () => shortState('cheer', 2600),
+      endCheer: () => { if (!paused && state === 'cheer') { clearTimeout(stateTimer); enterState('idle'); } },
+      currentMascot: mascotId,
+      availableMascots: () => available.map(([id]) => id),
+      currentState: () => state
+    };
+  }
+  window.ToolboxMascots = Object.freeze({create, STATES});
+}());
+
+  </script>
+  <!-- Launcher logic embedded so visible cards do not depend on external JS files -->
+  <script>
+(() => {
+  'use strict';
+  const S = window.LAUNCHER_SETTINGS;
+  const byId = id => document.getElementById(id);
+  const get = k => { try { return localStorage.getItem(k); } catch { return null; } };
+  const set = (k,v) => { try { localStorage.setItem(k,v); } catch {} };
+  const validDate = v => {
+    if(typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v))return false;
+    const d=new Date(v+'T00:00:00Z');return !Number.isNaN(d.valueOf()) && d.toISOString().slice(0,10)===v;
+  };
+  const validUrl = v => typeof v==='string' && (/^https?:\/\/[^\s]+$/i.test(v)||/^(\.\.?\/|\/(?!\/))\S+$/.test(v));
+  const ready = app => !!(app.visible && validUrl(S.URLS[app.key]) && (!S.REQUIRE_VALID_DATE || validDate(app.lastUpdated)));
+  const usable = S.APPS.filter(ready);
+  let query='', selected='All';
+  const icons = {
+    map:'<path d="M3 7l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 4v15M15 7v15"/>',
+    whiteboard:'<rect x="3" y="4" width="18" height="15" rx="2"/><path d="M2 22h20M6 9h8M6 12h5M15 15l4-4"/>',
+    deployment:'<circle cx="12" cy="5" r="3"/><path d="M7 13c0-3 2-4 5-4s5 1 5 4M12 14v4M4 18h16M4 18v4M12 18v4M20 18v4"/>',
+    storyboard:'<rect x="2" y="4" width="6" height="13" rx="1"/><rect x="9" y="4" width="6" height="13" rx="1"/><rect x="16" y="4" width="6" height="13" rx="1"/><path d="M4 20h16m-3-3 3 3-3 3"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    clipboard:'<rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M8 11h8M8 15h6"/>',
+    books:'<rect x="3" y="4" width="5" height="17" rx="1"/><rect x="9" y="4" width="6" height="17" rx="1"/><path d="m16 5 5-1 1 16-5 1z"/>',
+    spark:'<path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8z"/>',
+    tool:'<rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 10h18M7 7.5h.01M11 7.5h.01M8 14h9M8 17h6"/>'
+  };
+  const renderIcon = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name]||icons.tool}</svg>`;
+  const palette = {
+    map:['#e5f4ed','#237b57'],whiteboard:['#ebefff','#4a60bb'],deployment:['#f4eafd','#7f52a5'],storyboard:['#fff0e2','#aa6939'],
+    clock:['#fff4d9','#9b741a'],clipboard:['#e9f4fa','#286785'],books:['#f5eaf0','#a45479'],spark:['#ebf1ff','#3f6ca8'],tool:['#eaf0ff','#2858af']
+  };
+  const mascot=ToolboxMascots.create({
+    settings:S,spriteArt:byId('spriteArt'),bubble:byId('companionBubble'),sleepZs:byId('sleepZs'),
+    menu:byId('mascotMenu'),toggle:byId('mascotToggle'),storageKey:'school-toolbox-mascot',
+    followTheme:!!S.FOLLOW_THEME
+  });
+  const hint=byId('assistantHint');
+  const contextual=(app)=>{hint.textContent=app?(app.companionTip || app.description || ''):'';};
+  const theme=byId('themeToggle');
+  function setTheme(name){
+    document.documentElement.dataset.theme=name;
+    theme.innerHTML=name==='dark'?'☀':'☾';
+    theme.setAttribute('aria-label',name==='dark'?'Switch to light mode':'Switch to dark mode');
+    set('school-toolbox-theme',name);mascot.refresh();
+  }
+  setTheme(get('school-toolbox-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
+  theme.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+  const search=byId('searchInput');
+  const filters=byId('filters');
+  const grid=byId('appGrid');
+  function updateFilters(all){
+    const categories=['All',...new Set(all.map(app=>app.category))];
+    if(!categories.includes(selected))selected='All';
+    filters.replaceChildren();
+    const show=all.length>=7 && categories.length>=3;
+    byId('filtersContainer').hidden=!show;
+    if(!show){selected='All';return;}
+    for(const name of categories){
+      const button=document.createElement('button');button.className='filter';button.type='button';
+      button.textContent=name;button.setAttribute('aria-pressed',String(selected===name));
+      button.addEventListener('click',()=>{selected=name;mascot.work();render();});
       filters.append(button);
     }
-
-    function renderApps() {
-      const query = search.value.trim().toLowerCase();
-      const matches = apps.filter(app =>
-        (category === 'All' || app.category === category) &&
-        [app.title, app.description, app.category].some(v => v.toLowerCase().includes(query))
-      );
-      grid.replaceChildren();
-      for (const app of matches) {
-        const published = ready(app);
-        const card = document.createElement(published ? 'a' : 'article');
-        card.className = 'app' + (published ? '' : ' unavailable');
-        if (published) { card.href = linkFor(app.key); card.target = '_blank'; card.rel = 'noopener noreferrer'; }
-        const icon = published ? (ICONS[app.icon] || ICONS.tool) : ICONS.plus;
-        card.innerHTML = `<div class="app-top"><div class="app-icon" aria-hidden="true">${icon}</div><span class="arrow" aria-hidden="true"></span></div><h3></h3><p></p><div class="app-meta"><span class="tag"></span><span class="last-updated"></span></div>`;
-        const arrow = card.querySelector('.arrow');
-        if (published && app.requiresPasscode) {
-          arrow.className = 'passcode-label';
-          arrow.innerHTML = LOCK_ICON + 'Passcode required';
-          arrow.removeAttribute('aria-hidden');
-          card.setAttribute('aria-label', `${app.title} — passcode required`);
-        } else {
-          arrow.textContent = published ? '↗' : (linkFor(app.key) ? 'Date not set' : 'Link not set');
-        }
-        card.querySelector('h3').textContent = app.title;
-        card.querySelector('p').textContent = app.description;
-        card.querySelector('.tag').textContent = app.category;
-        card.querySelector('.last-updated').textContent = validDate(app.lastUpdated)
-          ? 'Last updated: ' + new Date(`${app.lastUpdated}T00:00:00Z`).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})
-          : 'Last updated: not set';
-        if (published) {
-          card.addEventListener('mouseenter', mascotSystem.cheer);
-          card.addEventListener('focus', mascotSystem.cheer, true);
-          card.addEventListener('touchstart', mascotSystem.cheer, {passive:true});
-        }
-        if (published) card.addEventListener('mouseleave', mascotSystem.endCheer);
-        grid.append(card);
-      }
-      document.getElementById('count').textContent = `${matches.length} ${matches.length === 1 ? 'tool' : 'tools'}`;
-      document.getElementById('empty').hidden = matches.length !== 0;
+  }
+  function render(){
+    const all=usable;
+    search.parentElement.hidden=all.length<5;
+    if(all.length<5){search.value='';query='';}
+    updateFilters(all);
+    const list=all.filter(app=>
+      (selected==='All'||app.category===selected) &&
+      [app.title,app.description,app.category,...(app.tags||[])].some(v=>v.toLocaleLowerCase().includes(query)));
+    grid.dataset.many=String(all.length>=7);
+    grid.replaceChildren();
+    for(const app of list){
+      const card=document.createElement('a');card.className='app-card';
+      card.href=S.URLS[app.key];card.target='_blank';card.rel='noopener noreferrer';
+      card.setAttribute('aria-label',`Open ${app.title}: ${app.description}`);
+      const [bg,ink]=palette[app.icon]||palette.tool;
+      card.style.setProperty('--tile-bg',bg);card.style.setProperty('--tile-color',ink);
+      card.innerHTML=`<div class="app-main"><div class="app-icon" aria-hidden="true">${renderIcon(app.icon)}</div><div class="app-body"><div class="app-title-row"><span class="app-name"></span><span class="app-arrow" aria-hidden="true">↗</span></div><p class="app-desc"></p></div></div><div class="app-meta"><span class="app-category"></span><span class="app-action"></span></div>`;
+      card.querySelector('.app-name').textContent=app.title;
+      card.querySelector('.app-desc').textContent=app.description;
+      card.querySelector('.app-category').textContent=app.category;
+      card.querySelector('.app-action').textContent='Open tool';
+      card.addEventListener('mouseenter',()=>{contextual(app);mascot.cheer();});
+      card.addEventListener('mouseleave',()=>{contextual(null);mascot.endCheer();});
+      card.addEventListener('focus',()=>{contextual(app);mascot.cheer();});
+      card.addEventListener('blur',()=>{contextual(null);mascot.endCheer();});
+      grid.append(card);
     }
-    search.addEventListener('input', () => { mascotSystem.work(); renderApps(); });
-    renderApps();
-
-    // Footer collections: each link has its own URL, and the whole bar has a toggle.
-    let collectionCount = 0;
-    for (const [id, key] of [['studentLink','STUDENT_TOOLS'], ['funLink','JUST_FOR_FUN'], ['privateLink','PRIVATE_COLLECTION']]) {
-      const anchor = document.getElementById(id);
-      const url = linkFor(key);
-      anchor.hidden = !url;
-      if (url) { anchor.href = url; collectionCount++; }
-    }
-    document.getElementById('otherCollections').hidden = !SETTINGS.SHOW_OTHER_COLLECTIONS || !collectionCount;
-
-    document.getElementById('year').textContent = new Date().getFullYear();
-    const themeButton = document.getElementById('themeToggle');
-    function setTheme(theme) {
-      document.documentElement.dataset.theme = theme;
-      themeButton.textContent = theme === 'dark' ? '☀' : '☾';
-      saveValue(themeStorageKey, theme);
-      mascotSystem.refresh();
-    }
-    setTheme(loadValue(themeStorageKey) || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-    themeButton.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+    byId('appCount').textContent=`${list.length} ${list.length===1?'tool':'tools'}`;
+    byId('empty').hidden=list.length>0;
+  }
+  search.addEventListener('input',()=>{query=search.value.trim().toLocaleLowerCase();mascot.work();render();});
+  render();
+  byId('year').textContent=new Date().getFullYear();
+})();
 
   </script>
 </body>
