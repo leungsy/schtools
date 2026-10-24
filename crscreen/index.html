@@ -148,6 +148,10 @@ select.input{appearance:auto}
 .menu button.danger{color:var(--danger)}
 .menu hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
 .menu-note{font-size:16px;color:var(--ink-3);margin:6px 12px 8px;line-height:1.4}
+.menu-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 6px 6px 12px;font-size:17px}
+.menu .seg button{display:inline-flex;justify-content:center;width:auto;border-radius:0;padding:0 14px;height:38px;font-size:16px;border-right:1px solid var(--line-2)}
+.menu .seg button:last-child{border-right:0}
+.menu .seg button.on{background:var(--accent);color:#fff}
 .menu-note.due{color:#8a5a12;font-weight:700}
 .swatch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px;width:300px}
 .swatch-grid button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 4px;font-size:16px;text-align:center}
@@ -164,13 +168,13 @@ select.input{appearance:auto}
 .empty-hint div{max-width:560px;font-size:20px;line-height:1.6}
 .empty-hint strong{color:var(--ink-2);display:block;font-size:24px;margin-bottom:6px}
 .board.dark .empty-hint,.board.dark .empty-hint strong{color:#c9d2d4}
-.dock{grid-row:3;display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 12px 10px;background:#fff;border-top:1px solid var(--line);position:relative;z-index:50}
-.dock-tabs{display:flex;flex-direction:column;gap:4px;margin-right:8px;padding-right:12px;border-right:1px solid var(--line)}
+.dock{grid-row:3;display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 8px 10px;background:#fff;border-top:1px solid var(--line);position:relative;z-index:50}
+.dock-tabs{display:flex;flex-direction:column;gap:4px;margin-right:4px;padding-right:8px;border-right:1px solid var(--line)}
 .dock-tabs button{border:1px solid transparent;background:none;border-radius:10px;padding:6px 12px;font-size:16px;color:var(--ink-2);text-align:left;white-space:nowrap}
 .dock-tabs button:hover{background:#f4f1ea}
 .dock-tabs button.on{background:var(--accent-soft);border-color:#b9d4d4;color:var(--accent);font-weight:700}
-.dock-apps{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
-.dock-apps button{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:88px;padding:8px 8px 6px;border:1px solid transparent;border-radius:14px;background:none;font-size:16px;color:var(--ink-2)}
+.dock-apps{display:flex;gap:0;flex-wrap:wrap;justify-content:center}
+.dock-apps button{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:62px;padding:8px 3px 6px;border:1px solid transparent;border-radius:14px;background:none;font-size:16px;color:var(--ink-2)}
 .dock-apps button:hover{background:#f4f1ea;border-color:var(--line);color:var(--ink)}
 .dock-apps .icon{width:30px;height:30px;color:var(--accent)}
 /* hide header */
@@ -181,7 +185,7 @@ body.no-header .pull-tab{display:inline-flex}
 /* focus mode hides all editing chrome */
 body.focus{grid-template-rows:0 1fr 0}
 body.focus .topbar,body.focus .dock{display:none}
-body.focus .w-head,body.focus .w-resize,body.focus .edit-only,body.focus .pull-tab{display:none!important}
+body.focus .w-head,body.focus .w-actions,body.focus .w-resize,body.focus .edit-only,body.focus .pull-tab{display:none!important}
 .float-btn{position:fixed;bottom:14px;z-index:70;display:none;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--line-2);background:#fff;font-size:16px;opacity:.4;transition:opacity .2s}
 .float-btn:hover,.float-btn:focus-visible{opacity:1}
 #exitFocus{right:14px}
@@ -191,6 +195,11 @@ body.focus #exitFocus,body.spotting #exitSpot{display:inline-flex}
 .board.spotlighting .w:not(.spot){visibility:hidden}
 .w.spot{left:1.5%!important;top:2%!important;width:97%!important;height:96%!important;z-index:9000!important}
 .w.spot .w-resize{display:none}
+/* grid mode: apps snap to a grid; an outline shows where a dragged app will land */
+.ghost{position:absolute;z-index:8000;border:3px dashed var(--accent);background:rgba(47,111,115,.12);border-radius:var(--radius);pointer-events:none;transition:left .12s,top .12s,width .12s,height .12s}
+.board.dark .ghost{border-color:var(--accent-bright);background:rgba(127,196,199,.14)}
+.board.grid.moving{background-image:linear-gradient(to right,rgba(127,196,199,.18) 1px,transparent 1px),linear-gradient(to bottom,rgba(127,196,199,.18) 1px,transparent 1px);background-size:calc(100% / var(--cols)) calc(100% / var(--rows))}
+.board.grid .w:not(.dragging){transition:background-color 1.6s ease,box-shadow .2s,left .15s,top .15s,width .15s,height .15s}
 /* blank screen (clicker "B" button) */
 .blank-screen{position:fixed;inset:0;z-index:300;background:#14191b;display:grid;place-items:end center;padding:24px;cursor:pointer}
 .blank-screen span{color:#6c7a7f;font-size:16px}
@@ -201,31 +210,45 @@ body.focus #exitFocus,body.spotting #exitSpot{display:inline-flex}
 .w.enter{animation:wIn .22s ease-out}
 @keyframes wIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
 .w.dragging{box-shadow:0 2px 4px rgba(31,42,46,.08),0 22px 48px rgba(31,42,46,.18);cursor:grabbing}
-.w-head{display:flex;align-items:center;gap:6px;height:40px;flex:none;padding:0 6px 0 14px;cursor:grab;touch-action:none;user-select:none;border-radius:var(--radius) var(--radius) 0 0}
-.w-title{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink-3);flex:1;min-width:0;white-space:nowrap;overflow:hidden}
-.w-title .icon{width:18px;height:18px;color:var(--ink-3)}
-.w-tag{display:none;font-size:16px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:0 8px}
+/* No app names. Two small handles sit on each app's top edge — move (top-left) and ⤢ ⚙ ✕ (top-right) —
+   plus the round resize handle at the bottom-right. They show only when you point at the app, tap it
+   (touch screens) or type in it, and never cover its content. */
+.w-head,.w-actions{position:absolute;top:-10px;z-index:7;display:flex;align-items:center;height:32px;border-radius:99px;background:#fff;
+  border:1px solid var(--line-2);box-shadow:0 1px 4px rgba(31,42,46,.2);opacity:0;pointer-events:none;transition:opacity .15s}
+.w-head{left:14px;gap:6px;padding:0 10px 0 6px;color:var(--ink-3);cursor:grab;touch-action:none;user-select:none}
+.w-head .icon{width:20px;height:20px}
+.w-actions{right:14px;gap:0;padding:0 2px}
+.w:hover>.w-head,.w.sel>.w-head,.w:focus-within>.w-head,.w.dragging>.w-head,
+.w:hover>.w-actions,.w.sel>.w-actions,.w:focus-within>.w-actions{opacity:1;pointer-events:auto}
+.w:not(.bare)>.w-body{padding-top:22px}
+.w-tag{display:none;font-size:16px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:0 8px}
 .w.is-target .w-tag{display:inline-block}
-.w-actions{display:flex;gap:2px}
-.w-actions button{width:34px;height:34px;border-radius:9px;border:0;background:none;display:grid;place-items:center;color:var(--ink-3);padding:0}
-.w-actions button:hover{background:rgba(31,42,46,.07);color:var(--ink)}
-.w-actions .icon{width:19px;height:19px}
+.w-actions button{width:30px;height:28px;border-radius:99px;border:0;background:none;display:grid;place-items:center;color:var(--ink-3);padding:0}
+.w-actions button:hover{background:rgba(31,42,46,.08);color:var(--ink)}
+.w-actions .icon{width:18px;height:18px}
 .w-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;container-type:size}
-.w-resize{position:absolute;right:2px;bottom:2px;width:26px;height:26px;cursor:nwse-resize;touch-action:none;z-index:3;border-radius:0 0 var(--radius) 0;
-  background:linear-gradient(135deg,transparent 0 55%,rgba(31,42,46,.3) 55% 60%,transparent 60% 70%,rgba(31,42,46,.3) 70% 75%,transparent 75%)}
+/* resize: the classic two-stripe mark just inside the corner; the area you can grab reaches a little
+   outside the corner, so it never sits on a scroll bar or a button */
+.w-resize{position:absolute;right:-12px;bottom:-12px;width:26px;height:26px;cursor:nwse-resize;touch-action:none;z-index:6}
+.w-resize::before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M5 11L11 5M1 10L10 1' stroke='%231f2a2e' stroke-opacity='.45' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") no-repeat;opacity:.75;transition:opacity .15s}
+.w-resize:hover::before,.w.dragging>.w-resize::before{opacity:1}
+.board.dark .w.bare .w-resize::before{filter:invert(1)}
+.w-resize{opacity:0;pointer-events:none;transition:opacity .15s}
+.w:hover>.w-resize,.w.sel>.w-resize,.w:focus-within>.w-resize,.w.dragging>.w-resize{opacity:1;pointer-events:auto}
+/* scroll bars inside apps: easy to see and grab (they never run under the resize handle) */
+.w-body ::-webkit-scrollbar{width:14px;height:14px}
+.w-body ::-webkit-scrollbar-thumb{background:#c9c2b5;border-radius:99px;border:3px solid transparent;background-clip:padding-box}
+.w-body ::-webkit-scrollbar-thumb:hover{background-color:#9d968a}
+.w-body ::-webkit-scrollbar-track{background:transparent}
 /* clicker target: dashed outline (hidden in focus mode) */
 .w.is-target::before{content:"";position:absolute;inset:-7px;border:3px dashed var(--accent);border-radius:calc(var(--radius) + 7px);pointer-events:none}
 .board.dark .w.is-target::before{border-color:var(--accent-bright)}
 body.focus .w.is-target::before,.w.spot::before{display:none}
 /* "bare" apps (Greeting, Traffic light) float on the board; their top bar is faint until hovered */
 .w.bare{background:transparent;border-color:transparent;box-shadow:none}
-.w.bare .w-head{position:absolute;left:0;right:0;top:0;z-index:4;background:rgba(255,255,255,.94);border:1px solid var(--line);opacity:.3;transition:opacity .15s}
-.w.bare:hover .w-head,.w.bare.dragging .w-head{opacity:1}
-.w.bare .w-resize{opacity:.45}
-.w.bare:hover .w-resize{opacity:1}
+
 /* dark (Slate) boards */
 .board.dark .w:not(.bare){border-color:rgba(255,255,255,.14);box-shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px rgba(0,0,0,.38)}
-.board.dark .w.bare .w-resize{background:linear-gradient(135deg,transparent 0 55%,rgba(255,255,255,.6) 55% 60%,transparent 60% 70%,rgba(255,255,255,.6) 70% 75%,transparent 75%)}
 
 /* (1.7 Touch-screen rules are at the end of the app styles, so they win) */
 
@@ -284,7 +307,7 @@ body.focus .w.is-target::before,.w.spot::before{display:none}
 .ck-date{font-size:max(16px,min(6cqw,13cqh));color:var(--ink-2);margin-top:.45em;text-align:center}
 
 /* ---------- Notice ---------- */
-.nt{display:flex;flex-direction:column;height:100%}
+.nt{display:flex;flex-direction:column;height:100%;padding-bottom:16px}
 .nt-tools{display:none;flex-wrap:wrap;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);flex:none}
 .w-notice:focus-within .nt-tools{display:flex}
 .nt-b{min-width:40px;height:40px;border:1px solid transparent;border-radius:9px;background:none;font-size:18px;display:inline-grid;place-items:center;padding:0 6px}
@@ -292,9 +315,11 @@ body.focus .w.is-target::before,.w.spot::before{display:none}
 .nt-b .icon{width:22px;height:22px}
 .nt-sep{width:1px;height:26px;background:var(--line);margin:0 4px}
 .dot{width:20px;height:20px;border-radius:50%;display:block}
-.nt-edit{flex:1;min-height:0;overflow:auto;padding:10px 22px 16px;outline:none;font-size:var(--fs);line-height:1.45;overflow-wrap:break-word}
+.nt-edit{flex:1;min-height:0;overflow:auto;padding:10px 22px 4px;outline:none;font-size:var(--fs);line-height:1.45;overflow-wrap:break-word}
 .nt-edit:empty::before{content:attr(data-ph);color:var(--ink-3)}
 .nt-edit ul,.nt-edit ol{margin:.2em 0;padding-left:1.4em}
+.nt-edit a,.ag-link{color:#1f5fbf;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.nt-edit img{display:block;max-width:100%;max-height:var(--edh,100%);height:auto;margin:.3em auto;border-radius:8px;object-fit:contain}
 .nt-edit li{margin:.15em 0}
 .nt-edit p{margin:0}
 
@@ -309,7 +334,11 @@ body.focus .w.is-target::before,.w.spot::before{display:none}
 .ag-check .icon svg{stroke-width:3.2}
 .done .ag-check{background:var(--accent);border-color:var(--accent)}
 .done .ag-check .icon{opacity:1}
-.ag-text{flex:1;outline:none;line-height:1.35;min-width:2em;transition:color .2s}
+.ag-text{flex:1;outline:none;line-height:1.35;min-width:2em;transition:color .2s;overflow-wrap:anywhere}
+.ag-text a{color:#1f5fbf;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ag-link{flex:none;display:inline-grid;place-items:center;width:1.25em;height:1.25em;margin-top:.05em;border-radius:8px;text-decoration:none}
+.ag-link .icon{width:.8em;height:.8em}
+.ag-link:hover{background:var(--accent-soft)}
 .done .ag-text{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:2px}
 .ag-tools{position:absolute;right:0;top:.1em;display:none;gap:4px;background:#fff;padding-left:6px}
 .ag-tools .ib{width:36px;height:36px}
@@ -323,6 +352,7 @@ body.focus .w.is-target::before,.w.spot::before{display:none}
 .board.dark .bb{box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .bb-text{font-size:max(16px,calc(var(--k,1) * 12cqmin));font-weight:700;text-align:center;line-height:1.2;outline:none;max-height:100%;overflow:hidden;overflow-wrap:anywhere;min-width:1em}
 .bb-text:empty::before{content:attr(data-ph);color:var(--ink-3)}
+body.focus .bb-text:empty::before{content:none}
 .bb-tail{position:absolute;left:16%;bottom:8px;width:42px;height:31px;background:var(--bbb);clip-path:polygon(0 0,100% 0,16% 100%)}
 .bb-tail i{position:absolute;left:4px;top:-4px;width:30px;height:28px;background:var(--bb);clip-path:polygon(0 0,100% 0,16% 100%)}
 
@@ -352,6 +382,19 @@ body.focus .w.is-target::before,.w.spot::before{display:none}
 .pk-name.landed{animation:land .35s ease-out}
 @keyframes land{from{transform:scale(.92);opacity:.6}to{transform:none;opacity:1}}
 .pk-bottom{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:none}
+/* spinning wheel */
+.pk.wheel-mode .pk-stage{display:block;padding:6px 8px 8px}
+.pk-wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+@container (min-aspect-ratio: 3/2){ .pk-wrap{flex-direction:row} .pk-wrap .pk-name{flex:0 0 38%} }   /* wide: name beside the wheel */
+.pk-wheel{flex:1;min-height:0;min-width:0;align-self:stretch;position:relative}
+.pk-wheel svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pk-wheel text{font-family:var(--font);font-weight:700;fill:#1f2a2e}
+.pk-wheel path,.pk-wheel .pk-rot>circle{stroke:#fff;stroke-width:1}
+.pk-rot{transform-origin:0 0}
+.pk-hub{fill:#fff;stroke:var(--line-2);stroke-width:2}
+.pk-pointer{fill:var(--accent);stroke:#fff;stroke-width:2;stroke-linejoin:round}
+.pk.wheel-mode .pk-name{flex:none;font-size:max(18px,min(8cqw,13cqh));padding:0 4%;min-height:1.2em}
+.pk.wheel-mode .pk-name.idle{font-size:16px}
 .pk-bottom .btn.primary{flex:1;min-width:150px}
 
 /* ---------- Group maker ---------- */
@@ -369,7 +412,7 @@ body.focus .w.is-target::before,.w.spot::before{display:none}
 .gm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:16px;flex:none}
 
 /* ---------- Group points ---------- */
-.pt{display:flex;flex-direction:column;height:100%;padding:0 12px 10px;gap:8px}
+.pt{display:flex;flex-direction:column;height:100%;padding:0 16px 12px;gap:8px}
 .pt-grid{flex:1;min-height:0;display:grid;gap:10px}
 .pt-card{container-type:size;position:relative;border-top:7px solid var(--gc);display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
 .pt-card.lead{border-color:var(--gc);box-shadow:0 0 0 2px var(--gc) inset}
@@ -500,11 +543,110 @@ body.focus .w.is-target::before,.w.spot::before{display:none}
 .ex-arrow .icon{width:1.4em;height:1.4em}
 .ex-foot{display:flex;gap:8px;align-items:center;flex:none;font-size:16px}
 
+/* ---------- Seating plan ---------- */
+.sp{display:flex;flex-direction:column;height:100%;padding:0 16px 14px;gap:8px}
+.sp-top,.sp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:none}
+.sp-top select{width:auto;flex:1;min-width:130px;max-width:240px}
+.sp-front{flex:none;text-align:center;font-size:16px;font-weight:700;color:var(--ink-2);background:#ece8df;border-radius:10px;padding:3px 8px}
+.sp-plan{flex:1;min-height:0;container-type:size;display:flex}
+.sp-grid,.sp-tables{flex:1;display:grid;min-width:0;min-height:0}
+.sp-grid{gap:clamp(4px,1.3cqmin,12px)}
+.sp-tables{gap:clamp(6px,2cqmin,18px)}
+.sp-seat,.sp-chair{min-width:0;min-height:0;border:2px solid var(--line-2);background:var(--paper);color:var(--ink);font-weight:700;line-height:1.15;text-align:center;
+  display:grid;place-items:center;padding:2px 6px;overflow:hidden;position:relative}
+.sp-seat{border-radius:10px;font-size:clamp(16px,min(calc(14cqw / var(--cols)),calc(32cqh / var(--rows))),30px)}
+.sp-seat span,.sp-chair span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;max-width:100%}
+.sp-seat.picked,.sp-chair.picked{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px var(--accent)}
+.sp-seat.absent span,.sp-chair.absent span{color:var(--ink-3);text-decoration:line-through;font-weight:400}
+.sp-seat.removable{border-style:dashed;cursor:pointer}
+.sp-x{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--danger)}
+.sp-x .icon{width:14px;height:14px}
+.sp-add{min-width:0;min-height:0;border:2px dashed var(--line-2);background:none;border-radius:10px;color:var(--ink-3);display:grid;place-items:center}
+.sp-add:hover{background:var(--accent-soft);color:var(--accent)}
+.sp-table{display:flex;flex-direction:column;min-width:0;min-height:0}
+.sp-tctl{display:flex;align-items:center;gap:4px;flex:none;font-size:16px}
+.sp-tctl .ib{width:34px;height:34px}
+.sp-ring{position:relative;flex:1;min-height:0}
+.sp-round{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60px;aspect-ratio:1;border-radius:50%;background:#e9e1d1;border:2px solid #cbbfa8;
+  display:grid;place-items:center;font-weight:700;color:var(--ink-2);font-size:20px}
+.sp-chair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:30%;border-radius:22px;font-size:16px;padding:3px 4px}
+.sp-chair.one span{-webkit-line-clamp:1}
+.sp-strip{flex:none;display:flex;gap:6px;flex-wrap:wrap;align-items:center;max-height:28%;overflow:auto;padding:6px 8px;border:1px dashed var(--line-2);border-radius:12px;font-size:16px}
+.sp-strip.target{border-color:var(--accent);background:var(--accent-soft);cursor:pointer}
+.sp-strip .chip{margin:0}
+.sp-strip .chip.absent{color:var(--ink-3);text-decoration:line-through}
+body.focus .sp-front{font-size:clamp(16px,2.2cqw,22px)}
+/* front at the bottom: turn the plan round, keep the names upright */
+.sp.flip .sp-grid,.sp.flip .sp-tables{transform:rotate(180deg)}
+.sp.flip .sp-grid>*{transform:rotate(180deg)}
+.sp.flip .sp-chair{transform:translate(-50%,-50%) rotate(180deg)}
+.sp.flip .sp-round{transform:translate(-50%,-50%) rotate(180deg)}
+.sp.flip .sp-tctl{transform:rotate(180deg)}
+/* export window */
+.exp-list{display:flex;flex-direction:column;gap:10px}
+.exp-btn{justify-content:flex-start;gap:14px;padding:12px 16px;text-align:left;white-space:normal}
+.exp-btn .icon{width:28px;height:28px;color:var(--accent)}
+.exp-btn span{display:flex;flex-direction:column;gap:2px}
+.exp-btn small{font-size:16px;color:var(--ink-3)}
+
+/* ---------- Stopwatch ---------- */
+.sw{display:flex;flex-direction:column;height:100%}
+.sw-main{flex:1;min-height:0;container-type:size;display:grid;place-items:center}
+.sw-time{font-size:min(calc(90cqw / var(--n,3)),62cqh);font-weight:700;line-height:1;white-space:nowrap}
+.sw-laps{flex:none;max-height:40%;overflow:auto;margin:0 16px;padding:0;list-style:none;border-top:1px solid var(--line)}
+.sw-laps li{display:grid;grid-template-columns:auto 1fr auto;gap:14px;padding:5px 6px;border-bottom:1px solid var(--line);font-size:18px}
+.sw-laps .n{color:var(--ink-3);font-weight:700}
+.sw-laps .lt{font-weight:700;text-align:right}
+.sw-laps .tt{color:var(--ink-3);text-align:right;min-width:5.5em}
+
+/* ---------- Exam timer ---------- */
+.xm{display:flex;flex-direction:column;height:100%;padding:0 20px 14px;gap:6px}
+.xm-top{display:flex;align-items:baseline;gap:14px;flex:none}
+.xm-paper{flex:1;min-width:0;font-weight:700;font-size:clamp(20px,4.4cqw,48px);line-height:1.2;outline:none;overflow-wrap:anywhere}
+.xm-paper:empty::before{content:attr(data-ph);color:var(--ink-3);font-weight:400}
+body.focus .xm-paper:empty::before{content:none}
+.xm-clock{flex:none;font-size:clamp(16px,2.6cqw,28px);font-weight:700;color:var(--ink-2);white-space:nowrap}
+.xm-main{flex:1;min-height:0;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.xm-time{font-size:min(calc(92cqw / var(--n,3)),78cqh);font-weight:700;line-height:1;white-space:nowrap}
+.xm-msg{font-size:max(16px,min(5cqw,12cqh));font-weight:700;color:var(--ink-2);text-align:center;margin-top:.2em}
+.xm-msg:empty{display:none}
+.xm-meta{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 30px;flex:none;font-size:clamp(16px,2.6cqw,30px);padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.xm-meta span{white-space:nowrap}
+.xm-meta small{font-size:max(16px,.68em);color:var(--ink-3);margin-right:.45em}
+.xm-meta .paused{color:#8a5a12;font-size:max(16px,.68em);font-weight:700;margin-left:.4em}
+.xm-notes{flex:none;max-height:32%;overflow:auto;outline:none;white-space:pre-wrap;font-size:clamp(16px,2.4cqw,30px);line-height:1.4;padding:2px}
+.xm-notes:empty{font-size:16px}
+.xm-notes:empty::before{content:attr(data-ph);color:var(--ink-3)}
+body.focus .xm-notes:empty{display:none}
+
+/* ---------- Starter (uses the Routine card's text styles) ---------- */
+.stt{display:flex;flex-direction:column;height:100%;padding:0 18px 12px;gap:10px;font-size:var(--fs)}
+.stt-top{display:flex;align-items:center;gap:10px;flex:none}
+.stt-top select{width:auto;max-width:70%;font-size:16px;min-height:40px;padding:4px 8px}
+.stt-main{flex:1;min-height:0;overflow:auto}
+.stt-box{margin-top:.5em;padding:.35em .7em;border-left:6px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;outline:none;white-space:pre-wrap;font-weight:700;line-height:1.35}
+.stt-box:empty{font-weight:400;font-size:16px;background:none;border-left-style:dashed}
+.stt-box:empty::before{content:attr(data-ph);color:var(--ink-3)}
+body.focus .stt-box:empty{display:none}
+.stt-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:none;font-size:16px}
+
+/* ---------- Brain break ---------- */
+.bk{display:flex;flex-direction:column;height:100%;padding:0 18px 12px;gap:8px;font-size:var(--fs)}
+.bk-steps{flex:1;min-height:0;overflow:auto;margin:0;padding:0;list-style:none;counter-reset:bk}
+.bk-steps li{counter-increment:bk;display:flex;gap:.6em;align-items:flex-start;padding:.3em .5em;border-radius:12px;color:var(--ink-2);line-height:1.3;transition:background-color .2s,color .2s}
+.bk-steps li::before{content:counter(bk);flex:none;width:1.55em;height:1.55em;border-radius:50%;display:grid;place-items:center;font-size:.8em;font-weight:700;background:#ece8df;color:var(--ink-2)}
+.bk-steps li.past{color:var(--ink-3)}
+.bk-steps li.past::before{background:#b9d4d4;color:#fff}
+.bk-steps li.on{background:var(--accent-soft);color:var(--ink);font-weight:700}
+.bk-steps li.on::before{background:var(--accent);color:#fff}
+.bk-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:none;font-size:16px}
+
 /* ---------- 1.7 Touch screens (interactive panels): no hover, bigger targets ---------- */
 @media (hover: none), (pointer: coarse){
-  .w.bare .w-head,.w.bare .w-resize{opacity:1}
-  .w-resize{width:38px;height:38px}
-  .w-actions button{width:42px;height:42px}
+  .w-resize{width:36px;height:36px;right:-22px;bottom:-22px}   /* bigger for fingers, same 14px inside the card */
+  .w-head,.w-actions{top:-14px;height:42px}
+  .w-actions button{width:42px;height:40px}
+  .w:not(.bare)>.w-body{padding-top:28px}
   .ag-tools{display:flex;position:static;background:none;padding-left:0}
   .rt-dots button{width:22px;height:22px}
 }
@@ -592,6 +734,9 @@ body.focus .toast{bottom:24px}
       <button data-act="clearEntries">Clear entries for the next class…</button>
       <button data-act="clearBoard">Remove all apps from this board</button>
       <hr>
+      <div class="menu-row"><span>Layout</span><div class="seg" role="group" aria-label="Layout"><button data-act="gridMode" title="Apps snap into place and never overlap">Grid</button><button data-act="freeMode" title="Place apps anywhere">Free</button></div></div>
+      <button data-act="tidy">Tidy up apps</button>
+      <hr>
       <button data-act="deleteBoard" class="danger">Delete this board…</button>
     </div>
   </div>
@@ -620,7 +765,7 @@ body.focus .toast{bottom:24px}
 </header>
 
 <main class="board" id="board" aria-label="Board">
-  <div class="empty-hint" id="emptyHint"><div><strong>This board is empty</strong>Add apps from the bar below — classroom tools or learning routines.<br>Drag an app's top bar to move it. Drag its bottom-right corner to resize.</div></div>
+  <div class="empty-hint" id="emptyHint"><div><strong>This board is empty</strong>Add apps from the bar below — classroom tools or learning routines.<br>Point at an app (or tap it) to show its bar: drag the bar to move the app, or the round corner handle to resize it.</div></div>
 </main>
 
 <nav class="dock" id="dock" aria-label="Add an app">
@@ -683,6 +828,12 @@ const CONFIG = {
   backupReminderDays: 14,               // a dot appears on Backup after this many days without one
   chime: { notes: [659.25, 830.61, 987.77], playTimes: 2, volume: 0.16 },  // soft E-major chime
   timerPresets: [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90],                  // minutes, in the Set time window
+  layout: {
+    newBoards: 'grid',   // 'grid' = apps snap into place and never overlap; 'free' = place apps anywhere
+    columns: 24,         // grid size across the board
+    rows: 16,            // grid size down the board
+    gap: 10,             // space between apps in grid mode (pixels)
+  },
 
   /* ---------- Clicker and keyboard (key names as the browser reports them) ----------
      While the cursor is in a text box, letters and arrows type as normal;
@@ -724,6 +875,16 @@ const CONFIG = {
     },
   },
 
+  /* ---------- Stopwatch ---------- */
+  stopwatch: { maxLaps: 99 },
+
+  /* ---------- Exam timer ---------- */
+  examTimer: {
+    minutes: 60,
+    showClock: true,                              // small current time in the corner
+    endMessage: 'Time is up. Please stop writing.',
+  },
+
   /* ---------- Clock ---------- */
   clock: { hour24: false, seconds: false, showDate: true, dateStyle: 'en-GB' },  // en-GB = "Friday 16 October 2026"
 
@@ -736,6 +897,15 @@ const CONFIG = {
       { name: 'Green', colour: '#1e7d45' },
       { name: 'Blue',  colour: '#1f5fbf' },
     ],
+    background: 'white',                          // starting note colour: one of the names below
+    backgrounds: {
+      white:  { name: 'White',  colour: '#ffffff' },
+      yellow: { name: 'Yellow', colour: '#fff6c2' },
+      pink:   { name: 'Pink',   colour: '#fde1e8' },
+      blue:   { name: 'Blue',   colour: '#dcecfb' },
+      green:  { name: 'Green',  colour: '#dff2e1' },
+      orange: { name: 'Orange', colour: '#fee6cc' },
+    },
   },
 
   /* ---------- Agenda ---------- */
@@ -750,7 +920,7 @@ const CONFIG = {
 
   /* ---------- Greeting ---------- */
   greeting: {
-    text: 'Good morning, everyone!',
+    text: '',                                     // starts empty; type on the bubble
     bubbleColour: 'sky',
     bubbleColours: {
       white: { name: 'White', fill: '#ffffff', edge: '#c9d1d5' },
@@ -770,10 +940,23 @@ const CONFIG = {
   },
 
   /* ---------- Name picker ---------- */
-  namePicker: { allowRepeats: false, rollingAnimation: true },
+  namePicker: {
+    allowRepeats: false,
+    style: 'card',              // 'card' = the name appears in a box; 'wheel' = a spinning wheel of names
+    suspenseSeconds: 2,         // 0, 2 or 4: names cycle past (card) or the wheel spins before stopping
+    wheelColours: ['#cfe3e4', '#f6dcc9', '#dce8c9', '#e5dcf1', '#f6e8b6', '#d0e2f4', '#f3d4dd', '#d8eadc'],
+  },
 
   /* ---------- Group maker ---------- */
   groupMaker: { groupSize: 4, labelPairs: false },
+
+  /* ---------- Seating plan (one plan per class for each room type) ---------- */
+  seatingPlan: {
+    frontLabel: 'Front (whiteboard)',
+    frontAtTop: true,                                   // false = front at the bottom (your view from the front)
+    standard: { columns: 6, rows: 5 },                  // Standard classroom: square tables, 1 student each
+    special: { tables: 5, chairs: 5, tablesPerRow: 3 }, // Special room: round tables with chairs, 3 tables per row
+  },
 
   /* ---------- Group points ---------- */
   groupPoints: {
@@ -783,6 +966,21 @@ const CONFIG = {
     groupColours: ['#5b8def', '#e07a5f', '#3d9970', '#c9a227', '#9b6bcc', '#2a9d8f', '#d1608a', '#6c8ea4', '#8a9a3b', '#c76d3a'],
   },
 
+  /* ---------- Starter (first 5 minutes, while students settle in) ----------
+     "text": start a line with "- " for a bullet point; type … for a blank.
+     "hint": the faint prompt in the box under the task, where you type today's words or questions. */
+  starter: {
+    minutes: 5,
+    tasks: [
+      { name: 'Recall', text: 'Write down 3 things you remember from last lesson.\n- Work on your own, in silence.\n- Be ready to share one.', hint: '' },
+      { name: 'Odd one out', text: 'Which one is the odd one out? Explain why.\nCan you find a reason for a different answer?', hint: "Type today's 4 words or items" },
+      { name: 'See – Think – Wonder', text: 'Look closely at the picture or headline.\n- What do you see?\n- What do you think is going on?\n- What does it make you wonder?', hint: 'Type a headline, or show a picture' },
+      { name: 'Quick quiz', text: 'Answer these questions on your own.\nNo notes. Just do your best.', hint: "Type today's 3 questions" },
+      { name: 'Keyword', text: 'Explain the keyword in your own words.\nThen give one example.', hint: 'Type the keyword' },
+      { name: 'Fact or opinion?', text: 'Is each statement a fact or an opinion?\nHow do you know?', hint: 'Type the statements' },
+    ],
+  },
+
   /* ---------- Routine cards ----------
      Each step: title, minutes (0 = no timer), text, and which sentence-starter sets to show.
      In "text", start a line with "- " for a bullet point and type … for a blank.
@@ -790,7 +988,7 @@ const CONFIG = {
   routines: {
     sac: {
       name: 'Structured Academic Controversy', short: 'SAC', questionLabel: 'Our question',
-      questionHint: 'Click to type the question, e.g. Should Singapore prioritise economic growth over conservation?',
+      questionHint: 'Type the question',
       option: 'swap', optionLabel: 'Include the swap-sides round (original Johnson & Johnson version). Untick for the shorter version.',
       steps: [
         { title: 'Form your groups', minutes: 1, text: 'Get into groups of 4.\nSplit into Pair A (argues YES) and Pair B (argues NO).', starters: [] },
@@ -806,7 +1004,7 @@ const CONFIG = {
     },
     qft: {
       name: 'Question Formulation Technique', short: 'QFT', questionLabel: 'Question Focus',
-      questionHint: 'Click to type a statement or prompt (not a question), e.g. “Water is a source of conflict.”',
+      questionHint: 'Type a statement or prompt (not a question)',
       option: null,
       steps: [
         { title: 'Look at the Question Focus', minutes: 1, text: 'Read the Question Focus above.\nWhat does it make you wonder?', starters: [] },
@@ -820,7 +1018,7 @@ const CONFIG = {
     },
     soc: {
       name: 'Socratic Seminar', short: 'Socratic Seminar', questionLabel: 'Text and opening question',
-      questionHint: 'Click to type the text and opening question, e.g. Source C — Is it ever right to break the law to protect the environment?',
+      questionHint: 'Type the text and opening question',
       option: 'fishbowl', optionLabel: 'Use a fishbowl (inner circle discusses, outer circle observes). Untick for one whole-class circle.',
       steps: [
         { title: 'Prepare the text', minutes: 0, text: 'Read and annotate the text.\n- Mark 2 places that made you think.\n- Write 1 open question to bring to the circle.', starters: [] },
@@ -911,6 +1109,49 @@ const CONFIG = {
     promptsBeforeNow: ['Before, I thought that …', 'Now I think …'],
     colours321: ['#2f6f73', '#3d68b5', '#a0532f'],
     coloursBeforeNow: ['#8a6420', '#2f6f73'],
+  },
+
+  /* ---------- Brain break (short, low-stakes resets; one step at a time) ---------- */
+  brainBreak: {
+    breaks: [
+      { name: 'Stretch and breathe', minutes: 2, steps: [
+        'Stand up and push in your chair.',
+        'Reach up high. Hold for 5 seconds.',
+        'Roll your shoulders back 5 times.',
+        'Breathe in for 4, hold for 4, breathe out for 4. Do this 3 times.',
+        'Sit down quietly.',
+      ] },
+      { name: 'Cross-crawl', minutes: 2, steps: [
+        'Stand up beside your chair.',
+        'Touch your right hand to your left knee.',
+        'Now touch your left hand to your right knee.',
+        'Keep going slowly, 10 times on each side.',
+        'Try it once more, a little faster.',
+        'Sit down quietly.',
+      ] },
+      { name: 'Stand up if…', minutes: 3, steps: [
+        'Listen to each sentence.',
+        'Stand up if it is true for you. Stay seated if it is not.',
+        'Stand up if you had breakfast today.',
+        'Stand up if you like rainy days.',
+        'Stand up if you can whistle.',
+        'Stand up if you have a pet.',
+        'Everyone sit down. Well done!',
+      ] },
+      { name: 'Rock–paper–scissors', minutes: 2, steps: [
+        'Turn to a partner near you.',
+        'Play rock–paper–scissors. Best of three.',
+        'The winner finds another winner. The other person cheers for them.',
+        'Keep going until the time is up.',
+        'Back to your seats.',
+      ] },
+      { name: 'One-minute listening', minutes: 2, steps: [
+        'Sit comfortably. Close your eyes or look down.',
+        'Stay silent for one minute.',
+        'Count how many different sounds you can hear.',
+        'Open your eyes. Tell a partner your number.',
+      ] },
+    ],
   },
 };
 /* ═══════════════════════════  END OF PERSONALISE HERE  ═══════════════════════════ */
@@ -1015,6 +1256,18 @@ const ICONS = {
   ol: '<text x="5" y="9" font-size="7" font-family="Verdana" fill="currentColor" stroke="none" text-anchor="middle">1</text><text x="5" y="14.5" font-size="7" font-family="Verdana" fill="currentColor" stroke="none" text-anchor="middle">2</text><text x="5" y="20" font-size="7" font-family="Verdana" fill="currentColor" stroke="none" text-anchor="middle">3</text><path d="M9.5 7h10M9.5 12.5h10M9.5 18h10"/>',
   eraser: '<path d="M8.5 19.5h11M4.8 15.2l9.4-9.4a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12.4 17.6a3 3 0 0 1-2.1.9H8.1a2 2 0 0 1-1.4-.6l-1.9-1.9a1.1 1.1 0 0 1 0-1.4z"/>',
   people: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.6 3-5.5 6-5.5s5.5 1.9 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.6c2.6.2 4.2 1.9 4.5 4.9"/>',
+  stopwatch: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.6M10 2.5h4M12 2.5V6M18.3 7.3l1.5-1.5"/>',
+  flag: '<path d="M5.5 21V4M5.5 4.5h11l-2.2 4 2.2 4h-11"/>',
+  exam: '<path d="M13 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21H11"/><path d="M8 7.5h6M8 11h3.5"/><circle cx="16.5" cy="16.5" r="4.6"/><path d="M16.5 14.2v2.4l1.5 1"/>',
+  starter: '<path d="M3 18.5h18M6.5 18.5a5.5 5.5 0 0 1 11 0"/><path d="M12 5v3M4.8 9.8l2 2M19.2 9.8l-2 2"/>',
+  brainbreak: '<circle cx="12" cy="4.8" r="2"/><path d="M12 8.2v6.2M12 14.4l-3.2 6M12 14.4l3.2 6M4.5 4.5l7.5 4.6 7.5-4.6"/>',
+  grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+  seating: '<path d="M6 3.5h12"/><rect x="3.5" y="7.5" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="7.5" width="4.5" height="4.5" rx="1"/><rect x="16" y="7.5" width="4.5" height="4.5" rx="1"/><rect x="3.5" y="15" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="15" width="4.5" height="4.5" rx="1"/><rect x="16" y="15" width="4.5" height="4.5" rx="1"/>',
+  print: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>',
+  link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.3 1.3"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.3-1.3"/>',
+  external: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/>',
+  image: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17.5l5-4.5 4 3.5 3-2.5 4.5 3.5"/>',
+  grip: '<circle cx="9" cy="7" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="7" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="17" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="17" r="1.2" fill="currentColor" stroke="none"/>',
   absent: '<circle cx="10" cy="8" r="3.2"/><path d="M4 20c.5-3.6 3-5.5 6-5.5 1.6 0 3 .5 4 1.4"/><path d="M16 15l5 5M21 15l-5 5"/>',
 };
 function icon(name) {
@@ -1059,6 +1312,22 @@ function fmtShort(ms) {
   if (S === 0) return `${M}m`;
   return M ? `${M}:${pad(S)}` : `${S}s`;
 }
+/* stopwatch 02:15.3, clock times 9:05 am, durations 1 h 45 min */
+function fmtSW(ms) {
+  const t = Math.floor(Math.max(0, ms) / 100), s = Math.floor(t / 10), H = Math.floor(s / 3600), M = Math.floor((s % 3600) / 60);
+  return (H ? `${H}:${pad(M)}` : pad(M)) + `:${pad(s % 60)}.${t % 10}`;
+}
+function fmtClock(ts) {
+  const D = new Date(ts); let H = D.getHours(); const M = pad(D.getMinutes());
+  if (CONFIG.clock.hour24) return `${pad(H)}:${M}`;
+  const suf = H < 12 ? 'am' : 'pm'; H = H % 12 || 12; return `${H}:${M} ${suf}`;
+}
+function fmtDur(ms) {
+  const m = Math.round(ms / 60000);
+  if (m < 1) return Math.round(ms / 1000) + ' sec';
+  const H = Math.floor(m / 60), M = m % 60;
+  return H ? `${H} h` + (M ? ` ${M} min` : '') : `${M} min`;
+}
 const fmtMin = m => (m < 1 ? Math.round(m * 60) + ' sec' : (m % 1 ? m.toFixed(1) : m) + ' min');
 
 /* Soft synthesized chime (no audio files needed) */
@@ -1089,9 +1358,98 @@ function chime() {
 document.addEventListener('pointerdown', () => { audio(); }, { once: true });
 
 /* Rich-text safety filter for Notice, Frayer and Exit ticket boxes */
-const KEEP_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'UL', 'OL', 'LI', 'BR', 'DIV', 'P', 'SPAN', 'FONT']);
-const DROP_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'IMG', 'SVG', 'MATH', 'TEMPLATE', 'LINK', 'META', 'VIDEO', 'AUDIO', 'FORM', 'INPUT', 'BUTTON', 'TEXTAREA', 'SELECT']);
+const KEEP_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'UL', 'OL', 'LI', 'BR', 'DIV', 'P', 'SPAN', 'FONT', 'A', 'IMG']);
+const DROP_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'SVG', 'MATH', 'TEMPLATE', 'LINK', 'META', 'VIDEO', 'AUDIO', 'FORM', 'INPUT', 'BUTTON', 'TEXTAREA', 'SELECT']);
 const SAFE_COLOR = /^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.\s,%]+\)|[a-z]{3,20})$/i;
+/* Automatic links: addresses starting http://, https:// or www. (not bare "moe.gov.sg", so "e.g." never becomes a link) */
+const URL_SRC = String.raw`\b(?:https?:\/\/|www\.)[^\s<>"']*[^\s<>"'.,;:!?)\]}]`;
+const findUrls = s => [...str(s).matchAll(new RegExp(URL_SRC, 'gi'))];
+const esc = t => str(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+/* cursor position as a count of characters, so text can be re-wrapped without moving the cursor */
+function caretOffset(root) {
+  const s = window.getSelection(); if (!s.rangeCount || !root.contains(s.anchorNode)) return -1;
+  const r = document.createRange(); r.selectNodeContents(root); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length;
+}
+function setCaretOffset(root, n) {
+  const s = window.getSelection(), r = document.createRange(), w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let t; (t = w.nextNode());) {
+    const inLink = t.parentElement.closest('a');
+    if (n < t.length || (n === t.length && !inLink)) { r.setStart(t, n); r.collapse(true); s.removeAllRanges(); s.addRange(r); return; }
+    n -= t.length;
+  }
+  r.selectNodeContents(root); r.collapse(false); s.removeAllRanges(); s.addRange(r);
+}
+/* wrap any unlinked web addresses inside an editable box (Notice); true if anything changed.
+   Only the text being wrapped is rebuilt, and the cursor is kept where it was (never inside the new link). */
+function autolink(root) {
+  const nodes = [], w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let t; (t = w.nextNode());) if (!t.parentElement.closest('a') && findUrls(t.data).length) nodes.push(t);
+  if (!nodes.length) return false;
+  // only keep the cursor while you are still typing here (setting it would pull focus back into the box)
+  const sel = window.getSelection(), typing = document.activeElement === root && sel.rangeCount;
+  const an = typing ? sel.anchorNode : null, ao = typing ? sel.anchorOffset : 0;
+  let caret = null;
+  nodes.forEach(t => {
+    const parts = []; let last = 0;
+    for (const m of findUrls(t.data)) {
+      if (m.index > last) parts.push(document.createTextNode(t.data.slice(last, m.index)));
+      const a = document.createElement('a'); a.setAttribute('href', safeUrl(m[0]) || m[0]); a.textContent = m[0]; parts.push(a);
+      last = m.index + m[0].length;
+    }
+    if (last < t.data.length) parts.push(document.createTextNode(t.data.slice(last)));
+    if (t === an) {
+      let n = ao;
+      for (const p of parts) {
+        const len = p.textContent.length, link = p.nodeType === 1;
+        if (n < len || (n === len && !link)) { caret = link ? [p.firstChild, n] : [p, n]; break; }
+        n -= len;
+      }
+      if (!caret) caret = ['after', parts[parts.length - 1]];
+    }
+    t.replaceWith(...parts);
+  });
+  if (caret) {
+    const r = document.createRange();
+    if (caret[0] === 'after') r.setStartAfter(caret[1]); else r.setStart(caret[0], caret[1]);
+    r.collapse(true); sel.removeAllRanges(); sel.addRange(r);
+  }
+  return true;
+}
+/* plain text shown with its web addresses as links (Agenda objectives when not being edited) */
+function linkedText(el, text) {
+  el.textContent = ''; let last = 0;
+  for (const m of findUrls(text)) {
+    el.append(text.slice(last, m.index), h('a', { href: safeUrl(m[0]) || m[0], target: '_blank', rel: 'noopener', title: 'Open ' + m[0] }, m[0]));
+    last = m.index + m[0].length;
+  }
+  el.append(text.slice(last));
+}
+const SAFE_IMG = /^data:image\/(png|jpeg|webp|gif);base64,[a-z0-9+/=\s]+$/i;
+/* web addresses: http, https and email only; "example.com" becomes "https://example.com" */
+function safeUrl(v) {
+  const u = str(v).trim();
+  if (/^(https?:\/\/|mailto:)[^\s<>"']+$/i.test(u)) return u;
+  if (/^(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+([/?#][^\s<>"']*)?$/i.test(u)) return 'https://' + u;
+  return null;
+}
+/* Pictures: shrink to fit 1600 px and store inside the board as WebP (about 100–300 KB each) */
+function shrinkImage(file, max = 1600) {
+  return new Promise(res => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      const g = c.getContext('2d'); g.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      let d = c.toDataURL('image/webp', 0.85);
+      if (!d.startsWith('data:image/webp')) { g.globalCompositeOperation = 'destination-over'; g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); d = c.toDataURL('image/jpeg', 0.85); }
+      res(d);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+    img.src = url;
+  });
+}
+/* the browser keeps about 5 MB for Class Screen; warn when pictures fill most of it */
+function storageNearlyFull() { try { return JSON.stringify(store).length > 4e6; } catch (e) { return false; } }
 function sanitize(html) {
   const t = document.createElement('template');
   t.innerHTML = str(html);
@@ -1101,12 +1459,17 @@ function sanitize(html) {
         if (DROP_TAGS.has(n.tagName)) { n.remove(); continue; }
         walk(n);
         if (!KEEP_TAGS.has(n.tagName)) { n.replaceWith(...n.childNodes); continue; }
+        const href = n.tagName === 'A' ? safeUrl(n.getAttribute('href')) : null;
+        const src = n.tagName === 'IMG' ? str(n.getAttribute('src')) : '';
+        if (n.tagName === 'IMG' && !SAFE_IMG.test(src)) { n.remove(); continue; }
         const st = n.style || {};
         const keep = {
           color: n.tagName === 'FONT' ? n.getAttribute('color') : st.color,
           fontWeight: st.fontWeight, fontStyle: st.fontStyle, textDecoration: st.textDecorationLine || st.textDecoration,
         };
         for (const a of [...n.attributes]) n.removeAttribute(a.name);
+        if (n.tagName === 'A') { if (href) n.setAttribute('href', href); else { n.replaceWith(...n.childNodes); continue; } }
+        if (n.tagName === 'IMG') { n.setAttribute('src', src); n.setAttribute('alt', ''); continue; }
         if (keep.color && SAFE_COLOR.test(keep.color.trim())) n.style.color = keep.color.trim();
         if (keep.fontWeight && /^(bold|bolder|[5-9]00)$/.test(keep.fontWeight)) n.style.fontWeight = 'bold';
         if (keep.fontStyle === 'italic') n.style.fontStyle = 'italic';
@@ -1123,7 +1486,7 @@ function sanitize(html) {
 let store = null;
 let saveTimer = null;
 
-function newBoard(name) { return { id: uid(), name, bg: DEFAULT_BG, widgets: [] }; }
+function newBoard(name) { return { id: uid(), name, bg: DEFAULT_BG, mode: CONFIG.layout.newBoards === 'free' ? 'free' : 'grid', widgets: [] }; }
 function board() { return store.boards.find(b => b.id === store.activeBoardId) || store.boards[0]; }
 function sampleStore() {
   const b = newBoard('My board'); // starts empty: no apps by default
@@ -1142,7 +1505,8 @@ function normalize(s) {
   const freshId = v => { let id = str(v).slice(0, 40); if (!id || ids.has(id)) id = uid(); ids.add(id); return id; };
   for (const b of s.boards) {
     if (!b || typeof b !== 'object') continue;
-    const nb = { id: freshId(b.id), name: str(b.name).slice(0, 60) || 'Untitled board', bg: BGS[b.bg] ? b.bg : DEFAULT_BG, widgets: [] };
+    const nb = { id: freshId(b.id), name: str(b.name).slice(0, 60) || 'Untitled board', bg: BGS[b.bg] ? b.bg : DEFAULT_BG,
+      mode: b.mode === 'grid' ? 'grid' : 'free', widgets: [] };   // boards saved before grid mode existed stay free
     for (const w of (Array.isArray(b.widgets) ? b.widgets : [])) {
       if (!w || typeof w !== 'object' || !APPS[w.type]) continue;
       const nw = {
@@ -1167,6 +1531,10 @@ function normalize(s) {
       names: dedupe((Array.isArray(c.names) ? c.names : []).map(n => str(n).trim().slice(0, 80)).filter(Boolean)),
     });
   }
+  if (s.seating && typeof s.seating === 'object') {
+    out.seating = {};
+    for (const c of out.classes) if (s.seating[c.id] && typeof s.seating[c.id] === 'object') out.seating[c.id] = cleanSeating(s.seating[c.id], c.names);
+  }
   const A = s.absent && typeof s.absent === 'object' ? s.absent : {};
   for (const c of out.classes) {
     const a = A[c.id];
@@ -1185,6 +1553,8 @@ function normalize(s) {
       out.starters[k] = a.length ? a : STARTER_CATS[k].starters.slice();
     }
   }
+  if (Array.isArray(s.starterTasks)) out.starterTasks = s.starterTasks.filter(t => t && typeof t === 'object').slice(0, 20).map(cleanStarterTask);
+  if (Array.isArray(s.brainBreaks)) out.brainBreaks = s.brainBreaks.filter(t => t && typeof t === 'object').slice(0, 20).map(cleanBreak);
   return out;
 }
 function loadStore() {
@@ -1228,6 +1598,64 @@ function updateBackupHint() {
 function absentFor(classId) { const a = store.absent && store.absent[classId]; return a && a.day === todayKey() ? a.names : []; }
 function setAbsent(classId, names) { store.absent = store.absent || {}; store.absent[classId] = { day: todayKey(), names }; save(); }
 function clearAbsent(classId) { if (store.absent && classId) delete store.absent[classId]; }
+
+/* Seating plans: one per class for each room — 'std' (Standard classroom: square tables, 1 student each,
+   gaps are aisles) and 'sp' (Special room: round tables with chairs). Shared by every board. */
+function defaultSeating() {
+  const S = CONFIG.seatingPlan;
+  return {
+    std: { rows: S.standard.rows, cols: S.standard.columns, gaps: [], seats: {} },
+    sp: { perRow: S.special.tablesPerRow, tables: Array.from({ length: S.special.tables }, () => ({ chairs: S.special.chairs, seats: Array(S.special.chairs).fill('') })) },
+  };
+}
+const seatKey = (r, c) => r + '-' + c;
+function seatList(P, room) {
+  if (room === 'std') { const S = P.std, out = []; for (let r = 0; r < S.rows; r++) for (let c = 0; c < S.cols; c++) if (!S.gaps.includes(seatKey(r, c))) out.push({ k: seatKey(r, c) }); return out; }
+  return P.sp.tables.flatMap((t, ti) => t.seats.map((_, ci) => ({ ti, ci })));
+}
+const getSeat = (P, ref) => (ref.k !== undefined ? P.std.seats[ref.k] || '' : P.sp.tables[ref.ti].seats[ref.ci] || '');
+function setSeat(P, ref, name) {
+  if (ref.k !== undefined) { if (name) P.std.seats[ref.k] = name; else delete P.std.seats[ref.k]; }
+  else P.sp.tables[ref.ti].seats[ref.ci] = name || '';
+}
+/* repair a saved plan: only this class's names, each student in one seat per room */
+function cleanSeating(s, names) {
+  const out = defaultSeating(), S = s && s.std, T = s && s.sp;
+  if (S && typeof S === 'object') {
+    out.std.rows = clamp(Math.round(numOr(S.rows, out.std.rows)), 1, 12); out.std.cols = clamp(Math.round(numOr(S.cols, out.std.cols)), 1, 12);
+    out.std.gaps = (Array.isArray(S.gaps) ? S.gaps : []).map(str).filter(k => /^\d+-\d+$/.test(k));
+    if (S.seats && typeof S.seats === 'object') for (const [k, v] of Object.entries(S.seats)) if (/^\d+-\d+$/.test(k)) out.std.seats[k] = str(v);
+  }
+  if (T && typeof T === 'object' && Array.isArray(T.tables) && T.tables.length) {
+    out.sp.perRow = clamp(Math.round(numOr(T.perRow, out.sp.perRow)), 1, 6);
+    out.sp.tables = T.tables.filter(t => t && typeof t === 'object').slice(0, 16).map(t => {
+      const n = clamp(Math.round(numOr(t.chairs, 5)), 2, 8), st = Array.isArray(t.seats) ? t.seats : [];
+      return { chairs: n, seats: Array.from({ length: n }, (_, i) => str(st[i])) };
+    });
+  }
+  return pruneSeating(out, names);
+}
+function pruneSeating(P, names) {
+  for (const room of ['std', 'sp']) {
+    const seen = new Set();
+    seatList(P, room).forEach(ref => { const n = getSeat(P, ref); if (n && (!names.includes(n) || seen.has(n))) setSeat(P, ref, ''); else if (n) seen.add(n); });
+  }
+  for (const k of Object.keys(P.std.seats)) { const [r, c] = k.split('-').map(Number); if (r >= P.std.rows || c >= P.std.cols || P.std.gaps.includes(k)) delete P.std.seats[k]; }
+  return P;
+}
+/* biggest round table that fits inside its chairs (pts = chair centres, pw × ph = chair size) */
+function tableRadius(cx, cy, pts, pw, ph) {
+  return Math.min(...pts.map(([x, y]) => Math.hypot(Math.max(Math.abs(x - cx) - pw / 2, 0), Math.max(Math.abs(y - cy) - ph / 2, 0))));
+}
+function seatingFor(classId) { store.seating = store.seating || {}; return store.seating[classId] || (store.seating[classId] = defaultSeating()); }
+
+/* save a file to Downloads */
+function download(name, data, type) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type });
+  const a = h('a', { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
 
 /* ============================================================
    3.4 Shared building blocks
@@ -1277,6 +1705,27 @@ function timerControls(w, ctx, refresh) {
   }
   sync();
   return { el: h('div', { class: 'tc' }, go, reset, plus, set, bellBtn), sync };
+}
+
+/* Touch screens: the first tap on an app only selects it (shows its handles); the next tap acts */
+const firstTap = (e, el) => !!(e.pointerType && e.pointerType !== 'mouse' && !el.dataset.wasSel);
+
+/* Small step timer (Routine, Starter, Brain break):  ⏱ 05:00  ▶  ↺ */
+function stepTimer(t, ctx, label) {
+  const time = h('span', { class: 'rt-time' });
+  const go = h('button', { class: 'ib', type: 'button', onclick: () => toggle() });
+  const re = ib('reset', 'Reset ' + label.toLowerCase(), () => { tReset(t); ctx.save(); refresh(); });
+  const el = h('div', { class: 'rt-timer', title: label }, icon('analog'), time, go, re);
+  function draw(now) { const s = fmtMs(tLeft(t, now)); if (time.textContent !== s) time.textContent = s; el.classList.toggle('done', t.done); }
+  function refresh() {
+    go.textContent = ''; go.append(icon(t.running ? 'pause' : 'play'));
+    go.title = (t.running ? 'Pause ' : 'Start ') + label.toLowerCase(); go.setAttribute('aria-label', go.title);
+    draw(Date.now());
+  }
+  function toggle() { tToggle(t); ctx.save(); refresh(); }
+  if (tCheck(t, Date.now())) ctx.save();
+  refresh();
+  return { el, toggle, refresh, tick(now) { if (tCheck(t, now)) { if (t.chime) chime(); ctx.save(); refresh(); } draw(now); } };
 }
 
 /* ---------- Form controls (settings windows) ---------- */
@@ -1428,6 +1877,13 @@ function starterBlock(k) {
   return h('div', { class: 'st-cat', style: `--cc:${c.colour}` }, h('h4', { text: c.name }), h('ul', {}, startersFor(k).map(s => h('li', {}, blankify(s)))));
 }
 
+/* ---------- Starter tasks and Brain breaks (shared library, editable in ⚙) ---------- */
+const cleanStarterTask = t => ({ name: str(t.name).trim().slice(0, 60) || 'Starter', text: str(t.text).slice(0, 1000), hint: str(t.hint).slice(0, 120) });
+const cleanBreak = t => ({ name: str(t.name).trim().slice(0, 60) || 'Brain break', minutes: clamp(numOr(+t.minutes, 2), 0.5, 15),
+  steps: (Array.isArray(t.steps) ? t.steps : []).map(x => str(x).trim().slice(0, 200)).filter(Boolean).slice(0, 12) });
+const starterTasks = () => (store && store.starterTasks && store.starterTasks.length ? store.starterTasks : CONFIG.starter.tasks);
+const brainBreaks = () => (store && store.brainBreaks && store.brainBreaks.length ? store.brainBreaks : CONFIG.brainBreak.breaks);
+
 /* ---------- Routine steps (stored as { title, time, text, starters, opt }) ---------- */
 function cleanStep(s) {
   return {
@@ -1488,15 +1944,15 @@ function confirmBox(title, msg, okLabel = 'OK', danger = false) {
     });
   });
 }
-function promptBox(title, label, value = '') {
+function promptBox(title, label, value = '', { maxlength = 60, allowEmpty = false } = {}) {
   return new Promise(res => {
     let answered = false;
-    const input = h('input', { class: 'input', type: 'text', maxlength: 60, 'data-autofocus': '' }); input.value = value;
+    const input = h('input', { class: 'input', type: 'text', maxlength, 'data-autofocus': '' }); input.value = value;
     const m = openModal({
       title, body: field(label, input), keep: true,
       actions: [
         { label: 'Cancel', onClick: () => { answered = true; res(null); } },
-        { label: 'OK', kind: 'primary', onClick: () => { const v = input.value.trim(); if (!v) { input.focus(); return false; } answered = true; res(v); } },
+        { label: 'OK', kind: 'primary', onClick: () => { const v = input.value.trim(); if (!v && !allowEmpty) { input.focus(); return false; } answered = true; res(v); } },
       ],
       onClose: () => { if (!answered) res(null); },
     });
@@ -1539,7 +1995,7 @@ analog: {
     const classic = () => d.scale === 'auto' && d.duration <= 3600000;
     const builtClassic = classic(), builtDur = d.duration;
     const face = h('div', { class: 'at-face', title: 'Click to set the time' });
-    face.addEventListener('click', () => { if (!d.running) openTimerSettings(w, ctx); });
+    face.addEventListener('click', e => { if (!d.running && !firstTap(e, ctx.el)) openTimerSettings(w, ctx); });
     const digits = h('div', { class: 'at-digits' });
     if (!d.showDigits) digits.hidden = true;
     const discColour = DISC[d.color].colour;
@@ -1597,7 +2053,7 @@ digital: {
     const time = h('div', { class: 'dc-time' });
     const msg = h('div', { class: 'dc-msg' });
     const main = h('div', { class: 'dc-main', title: 'Click to set the time' }, time, msg);
-    main.addEventListener('click', () => { if (!d.running) openTimerSettings(w, ctx); });
+    main.addEventListener('click', e => { if (!d.running && !firstTap(e, ctx.el)) openTimerSettings(w, ctx); });
     const barFill = h('i'); const bar = h('div', { class: 'dc-bar' }, barFill);
     if (!d.bar) bar.hidden = true;
     const ctl = timerControls(w, ctx, () => draw(Date.now()));
@@ -1629,6 +2085,107 @@ digital: {
       play() { tToggle(d); ctx.save(); ctl.sync(); draw(Date.now()); },
       destroy() { ctx.el.classList.remove('cue-green', 'cue-amber', 'cue-red'); },
     };
+  },
+},
+
+/* ---------- Stopwatch (with laps) ---------- */
+stopwatch: {
+  label: 'Stopwatch', icon: 'stopwatch', size: [420, 400], min: [260, 240],
+  defaults: () => ({ running: false, startAt: 0, elapsed: 0, laps: [] }),
+  fix(d) {
+    d.startAt = numOr(d.startAt, 0); d.running = !!d.running && d.startAt > 0; d.elapsed = Math.max(0, numOr(d.elapsed, 0));
+    d.laps = (Array.isArray(d.laps) ? d.laps : []).map(Number).filter(n => isFinite(n) && n >= 0).slice(-CONFIG.stopwatch.maxLaps);
+  },
+  clear: { label: 'Stopwatches reset', fn: d => Object.assign(d, { running: false, startAt: 0, elapsed: 0, laps: [] }) },
+  mount(body, w, ctx) {
+    const d = w.data, MAX = CONFIG.stopwatch.maxLaps;
+    const total = now => d.elapsed + (d.running ? now - d.startAt : 0);
+    const time = h('div', { class: 'sw-time', 'aria-live': 'off' });
+    const laps = h('ol', { class: 'sw-laps', 'aria-label': 'Laps' });
+    const go = h('button', { class: 'btn primary go', type: 'button', onclick: () => toggle() });
+    const lapB = h('button', { class: 'btn', type: 'button', title: 'Record a lap (clicker: forward)', onclick: () => lap() }, icon('flag'), 'Lap');
+    const resetB = ib('reset', 'Reset stopwatch', () => reset());
+    body.append(h('div', { class: 'sw' }, h('div', { class: 'sw-main' }, time), laps, h('div', { class: 'tc' }, go, lapB, resetB)));
+    function toggle() { const now = Date.now(); if (d.running) { d.elapsed = total(now); d.running = false; } else { d.startAt = now; d.running = true; } ctx.save(); sync(); }
+    function lap() { if (!d.running || d.laps.length >= MAX) return; d.laps.push(total(Date.now())); ctx.save(); drawLaps(); sync(); }
+    function reset() {
+      const was = total(Date.now()); if (!was && !d.laps.length) return;
+      const old = d.laps.slice();
+      Object.assign(d, { running: false, startAt: 0, elapsed: 0, laps: [] }); ctx.save(); drawLaps(); sync();
+      toast('Stopwatch reset', { label: 'Undo', fn: () => { Object.assign(d, { running: false, elapsed: was, laps: old }); ctx.save(); drawLaps(); sync(); } });
+    }
+    function drawLaps() {
+      laps.textContent = ''; laps.hidden = !d.laps.length;
+      for (let i = d.laps.length - 1; i >= 0; i--) laps.append(h('li', {},
+        h('span', { class: 'n', text: `Lap ${i + 1}` }), h('span', { class: 'lt', text: fmtSW(d.laps[i] - (i ? d.laps[i - 1] : 0)) }), h('span', { class: 'tt', text: fmtSW(d.laps[i]) })));
+    }
+    function sync() {
+      const t = total(Date.now());
+      go.textContent = ''; go.append(icon(d.running ? 'pause' : 'play'), d.running ? 'Pause' : t ? 'Resume' : 'Start');
+      lapB.disabled = !d.running || d.laps.length >= MAX; resetB.disabled = !t && !d.laps.length;
+      draw(Date.now());
+    }
+    function draw(now) { setDigits(time, fmtSW(total(now))); }
+    drawLaps(); sync();
+    return { tick: draw, play: toggle, next: lap };
+  },
+},
+
+/* ---------- Exam timer ---------- */
+exam: {
+  label: 'Exam timer', icon: 'exam', size: [780, 480], min: [420, 300], settings: true,
+  defaults: () => Object.assign(timerDefaults(CONFIG.examTimer.minutes * 60), { paper: '', notes: '', startedAt: 0, clock: CONFIG.examTimer.showClock }),
+  fix(d) { fixTimer(d); d.paper = str(d.paper).slice(0, 120); d.notes = str(d.notes).slice(0, 1500); d.startedAt = numOr(d.startedAt, 0); d.clock = d.clock !== false; },
+  clear: { label: 'Exam timers reset', fn: d => { tReset(d); d.startedAt = 0; } },
+  mount(body, w, ctx) {
+    const d = w.data;
+    const set = (el, t) => { if (el.textContent !== t) el.textContent = t; };
+    const paper = oneLine(h('div', { class: 'xm-paper', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': 'Name of paper' }), v => { d.paper = v; ctx.save(); });
+    paper.textContent = d.paper;
+    const clock = h('div', { class: 'xm-clock', title: 'Time now' }); clock.hidden = !d.clock;
+    const time = h('div', { class: 'xm-time' }), msg = h('div', { class: 'xm-msg' });
+    const main = h('div', { class: 'xm-main', title: 'Click to set the exam length' }, time, msg);
+    main.addEventListener('click', e => { if (!d.running && !firstTap(e, ctx.el)) openTimerSettings(w, ctx); });
+    const vStart = h('b'), vEnd = h('b'), vDur = h('b'), paused = h('span', { class: 'paused', text: 'paused' });
+    const meta = h('div', { class: 'xm-meta' },
+      h('span', {}, h('small', { text: 'Start' }), ' ', vStart), h('span', {}, h('small', { text: 'End' }), ' ', vEnd, ' ', paused), h('span', {}, h('small', { text: 'Duration' }), ' ', vDur));
+    // instructions take no space when empty (and disappear in focus mode)
+    const notes = h('div', { class: 'xm-notes', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': '+ Add instructions (optional)' });
+    notes.textContent = d.notes;
+    notes.addEventListener('input', () => { if (!notes.textContent.trim()) notes.textContent = ''; d.notes = notes.textContent; ctx.save(); });
+    // start time = when Start was pressed; a reset clears it
+    const markStart = () => {
+      const now = Date.now(), left = tLeft(d, now);
+      if (d.running && (!d.startedAt || left >= d.duration - 1500)) d.startedAt = now - (d.duration - left);
+      if (!d.running && !d.done && d.remaining >= d.duration) d.startedAt = 0;
+    };
+    const ctl = timerControls(w, ctx, () => { markStart(); ctx.save(); draw(Date.now()); });
+    ctl.el.classList.add('edit-only');   // hidden in focus mode; Space / the clicker still start and pause
+    body.append(h('div', { class: 'xm' }, h('div', { class: 'xm-top' }, paper, clock), main, meta, notes, ctl.el));
+    function draw(now) {
+      const left = tLeft(d, now), started = d.startedAt > 0;
+      setDigits(time, fmtMs(left));
+      set(msg, d.done ? CONFIG.examTimer.endMessage : '');
+      if (d.clock) set(clock, fmtClock(now));
+      set(vStart, started ? fmtClock(d.startedAt) : '–');
+      set(vEnd, d.running || d.done ? fmtClock(d.endAt) : started ? fmtClock(now + left) : '–');
+      paused.hidden = !(started && !d.running && !d.done);
+      set(vDur, fmtDur(d.duration));
+    }
+    if (tCheck(d, Date.now())) ctx.save();
+    draw(Date.now());
+    return {
+      tick(now) { if (tCheck(d, now)) { if (d.chime) chime(); ctx.save(); ctl.sync(); } draw(now); },
+      play() { tToggle(d); markStart(); ctx.save(); ctl.sync(); draw(Date.now()); },
+    };
+  },
+  settings(w, ctx) {
+    const d = w.data;
+    return [
+      h('button', { class: 'btn', type: 'button', onclick: () => openTimerSettings(w, ctx) }, icon('analog'), 'Set the exam length…'),
+      checkbox('Show the time now in the top corner', d.clock, v => { d.clock = v; ctx.save(); ctx.rerender(); }),
+      h('p', { class: 'muted', text: 'The start time is when you press Start. If you pause (for example, for a fire drill), the end time moves later. In focus mode the buttons hide; Space or the clicker still starts and pauses.' }),
+    ];
   },
 },
 
@@ -1665,9 +2222,9 @@ clock: {
 
 /* ---------- Notice ---------- */
 notice: {
-  label: 'Notice', icon: 'notice', size: [520, 340], min: [260, 160],
-  defaults: () => ({ html: CONFIG.notice.text, fs: 28 }),
-  fix(d) { d.html = sanitize(d.html); fixFs(d, 28, 120); },
+  label: 'Notice', icon: 'notice', size: [520, 340], min: [260, 160], settings: true,
+  defaults: () => ({ html: CONFIG.notice.text, fs: 28, bg: CONFIG.notice.background }),
+  fix(d) { d.html = sanitize(d.html); fixFs(d, 28, 120); if (!CONFIG.notice.backgrounds[d.bg]) d.bg = Object.keys(CONFIG.notice.backgrounds)[0]; },
   mount(body, w, ctx) {
     const d = w.data;
     const ed = h('div', { class: 'nt-edit', contenteditable: 'true', spellcheck: 'true', 'data-ph': 'Click here to type instructions. Formatting tools appear while you type.' });
@@ -1696,26 +2253,92 @@ notice: {
       sep(),
       CONFIG.notice.textColours.map(c => tb(h('span', { class: 'dot', style: `background:${c.colour}` }), c.name + ' text', () => color(c.colour))),
       sep(),
+      tb(icon('link'), 'Link: select some words, then add a web address', () => addLink()),
+      tb(icon('image'), 'Insert a picture (you can also paste a screenshot)', () => { keepSel(); picIn.click(); }),
+      sep(),
       sizer,
       tb(icon('eraser'), 'Clear formatting', () => cmd('removeFormat')),
     );
-    ed.addEventListener('input', sync);
+    ed.addEventListener('input', e => {
+      if ((e.inputType === 'insertText' && /\s/.test(e.data || '')) || e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') autolink(ed);
+      sync();
+    });
+    ed.addEventListener('blur', () => { if (autolink(ed)) sync(); });
+
+    // remember where the cursor was while a window or file picker is open
+    let saved = null;
+    const keepSel = () => { const s = window.getSelection(); saved = s.rangeCount && ed.contains(s.getRangeAt(0).commonAncestorContainer) ? s.getRangeAt(0).cloneRange() : null; };
+    const backToSel = () => {
+      ed.focus(); const s = window.getSelection(); s.removeAllRanges();
+      if (saved) s.addRange(saved); else { const r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); s.addRange(r); }
+    };
+    // links: a click opens them in a new tab; while you are typing here, a click places the cursor (Ctrl+click opens)
+    async function addLink() {
+      keepSel();
+      let n = saved && saved.commonAncestorContainer; if (n && n.nodeType === 3) n = n.parentNode;
+      const a = n && n.closest ? n.closest('a') : null;
+      if (a && ed.contains(a)) { saved = document.createRange(); saved.selectNodeContents(a); }
+      const v = await promptBox(a ? 'Change link' : 'Add a link', a ? 'Web address (leave empty to remove the link)' : 'Web address',
+        a ? a.getAttribute('href') : '', { maxlength: 500, allowEmpty: !!a });
+      backToSel();
+      if (v === null) return;
+      if (!v) { document.execCommand('unlink'); sync(); return; }
+      const url = safeUrl(v); if (!url) { toast('That doesn’t look like a web address'); return; }
+      if (saved && !saved.collapsed) document.execCommand('createLink', false, url);
+      else document.execCommand('insertHTML', false, `<a href="${url}">${url.replace(/&/g, '&amp;')}</a>&nbsp;`);
+      sync();
+    }
+    let editing = false;
+    ed.addEventListener('mousedown', e => { editing = document.activeElement === ed; if (!editing && e.target.closest('a[href]')) e.preventDefault(); });
+    ed.addEventListener('click', e => {
+      const a = e.target.closest('a[href]'); if (!a || (editing && !e.ctrlKey && !e.metaKey)) return;
+      e.preventDefault(); window.open(a.href, '_blank', 'noopener');
+    });
+    // pictures: the button, a pasted screenshot, or an image file dropped in
+    const picIn = h('input', { type: 'file', accept: 'image/*', hidden: true });
+    picIn.addEventListener('change', () => { const f = picIn.files[0]; picIn.value = ''; if (f) addPicture(f); });
+    async function addPicture(file) {
+      const url = await shrinkImage(file);
+      if (!url) { toast('That picture could not be opened'); return; }
+      backToSel(); document.execCommand('insertHTML', false, `<img src="${url}" alt="">`); sync();
+      if (storageNearlyFull()) toast('Storage is nearly full. Export a backup, then remove pictures you no longer need.');
+    }
     ed.addEventListener('paste', e => {
       e.preventDefault();
-      document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
+      const cd = e.clipboardData || window.clipboardData;
+      const f = [...(cd.files || [])].find(x => x.type.startsWith('image/'));
+      if (f) { keepSel(); addPicture(f); return; }
+      document.execCommand('insertText', false, cd.getData('text/plain'));
+      if (autolink(ed)) sync();
     });
-    root.append(tools, ed);
+    ed.addEventListener('dragover', e => { if ([...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+    ed.addEventListener('drop', e => {
+      const f = [...(e.dataTransfer.files || [])].find(x => x.type.startsWith('image/')); if (!f) return;
+      e.preventDefault();
+      const r = document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY);
+      saved = r && ed.contains(r.startContainer) ? r : null; addPicture(f);
+    });
+    // a picture always fits inside the box (resize the Notice or spotlight it to see it bigger)
+    const ro = new ResizeObserver(() => ed.style.setProperty('--edh', Math.max(60, ed.clientHeight - 24) + 'px')); ro.observe(ed);
+    root.append(tools, ed, picIn);
     body.append(root);
+    ctx.el.style.setProperty('--card', CONFIG.notice.backgrounds[d.bg].colour);   // note colour
+    return { destroy() { ro.disconnect(); ctx.el.style.removeProperty('--card'); } };
+  },
+  settings(w, ctx) {
+    const d = w.data;
+    return [h('div', { class: 'form-sec' }, h('h3', { text: 'Note colour' }),
+      swatches(CONFIG.notice.backgrounds, d.bg, v => { d.bg = v; ctx.save(); ctx.rerender(); }))];
   },
 },
 
 /* ---------- Agenda (learning objectives with tickboxes) ---------- */
 agenda: {
   label: 'Agenda', icon: 'agenda', size: [480, 380], min: [260, 200], fallback: true,
-  defaults: () => ({ title: CONFIG.agenda.title, fs: 26, items: CONFIG.agenda.objectives.map(t => ({ id: uid(), text: t, done: false })) }),
+  defaults: () => ({ title: CONFIG.agenda.title, fs: 26, items: CONFIG.agenda.objectives.map(t => ({ id: uid(), text: t, done: false, link: '' })) }),
   fix(d) {
     d.title = str(d.title).slice(0, 200); fixFs(d, 26, 100);
-    d.items = (Array.isArray(d.items) ? d.items : []).filter(i => i && typeof i === 'object').map(i => ({ id: str(i.id) || uid(), text: str(i.text).slice(0, 500), done: !!i.done }));
+    d.items = (Array.isArray(d.items) ? d.items : []).filter(i => i && typeof i === 'object').map(i => ({ id: str(i.id) || uid(), text: str(i.text).slice(0, 500), done: !!i.done, link: safeUrl(i.link) || '' }));
   },
   clear: { label: 'Agenda ticks removed', fn: d => d.items.forEach(i => { i.done = false; }) },
   mount(body, w, ctx) {
@@ -1740,13 +2363,20 @@ agenda: {
       const r = document.createRange(); r.selectNodeContents(el); r.collapse(!!atStart);
       const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
     }
-    function addItem(at) { d.items.splice(at, 0, { id: uid(), text: '', done: false }); ctx.save(); draw(); focusItem(at); }
+    function addItem(at) { d.items.splice(at, 0, { id: uid(), text: '', done: false, link: '' }); ctx.save(); draw(); focusItem(at); }
     function removeItem(i, focusPrev) {
       const [gone] = d.items.splice(i, 1); ctx.save(); draw();
       if (focusPrev && i > 0) focusItem(i - 1);
       else if (!focusPrev && gone.text) toast('Objective removed', { label: 'Undo', fn: () => { d.items.splice(i, 0, gone); ctx.save(); draw(); } });
     }
     function move(i, dir) { const j = i + dir; if (j < 0 || j >= d.items.length) return; [d.items[i], d.items[j]] = [d.items[j], d.items[i]]; ctx.save(); draw(); }
+    async function editLink(it) {
+      const v = await promptBox(it.link ? 'Change link' : 'Add a link', it.link ? 'Web address (leave empty to remove the link)' : 'Web address',
+        it.link || '', { maxlength: 500, allowEmpty: !!it.link });
+      if (v === null) return;
+      if (v) { const u = safeUrl(v); if (!u) { toast('That doesn’t look like a web address'); return; } it.link = u; } else it.link = '';
+      ctx.save(); draw();
+    }
     function setDone(it, li, cb, v) { it.done = v; li.classList.toggle('done', v); cb.setAttribute('aria-checked', String(v)); ctx.save(); updateCount(); }
     function draw() {
       list.textContent = '';
@@ -1755,13 +2385,20 @@ agenda: {
         const cb = h('button', { class: 'ag-check', type: 'button', role: 'checkbox', 'aria-checked': String(it.done), 'aria-label': 'Done' }, icon('check'));
         cb.addEventListener('click', () => setDone(it, li, cb, !it.done));
         const tx = h('div', { class: 'ag-text', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': 'Type an objective…' });
-        tx.textContent = it.text;
+        linkedText(tx, it.text);
         tx.addEventListener('input', () => { it.text = tx.textContent; ctx.save(); });
+        // a web address in the objective is a link; click it to open, click elsewhere on the text to edit
+        tx.addEventListener('mousedown', e => { if (document.activeElement !== tx && e.target.closest('a')) e.preventDefault(); });
+        tx.addEventListener('click', e => { const a = e.target.closest('a'); if (a && document.activeElement !== tx) { e.preventDefault(); window.open(a.href, '_blank', 'noopener'); } });
+        tx.addEventListener('focus', () => { if (tx.querySelector('a')) { const off = caretOffset(tx); tx.textContent = it.text; if (off >= 0) setCaretOffset(tx, off); } });
+        tx.addEventListener('blur', () => linkedText(tx, it.text));
         tx.addEventListener('keydown', e => {
           if (e.key === 'Enter') { e.preventDefault(); addItem(i + 1); }
           else if (e.key === 'Backspace' && tx.textContent === '') { e.preventDefault(); removeItem(i, true); }
         });
-        li.append(cb, tx, h('span', { class: 'ag-tools edit-only' },
+        const open = it.link ? h('a', { class: 'ag-link', href: it.link, target: '_blank', rel: 'noopener', title: 'Open ' + it.link, 'aria-label': 'Open the link for this objective' }, icon('external')) : null;
+        li.append(...[cb, tx, open].filter(Boolean), h('span', { class: 'ag-tools edit-only' },
+          ib('link', it.link ? 'Change or remove the link' : 'Add a link', () => editLink(it)),
           ib('up', 'Move up', () => move(i, -1)), ib('down', 'Move down', () => move(i, 1)), ib('trash', 'Delete', () => removeItem(i))));
         list.append(li);
       });
@@ -1845,86 +2482,118 @@ traffic: {
   },
 },
 
-/* ---------- Name picker ---------- */
+/* ---------- Name picker (a name card, or a spinning wheel) ---------- */
 picker: {
-  label: 'Name picker', icon: 'picker', size: [460, 360], min: [280, 240],
-  defaults: () => ({ classId: null, repeats: CONFIG.namePicker.allowRepeats, picked: [], current: '' }),
-  fix(d) { d.classId = d.classId ? str(d.classId) : null; d.repeats = !!d.repeats; d.picked = (Array.isArray(d.picked) ? d.picked : []).map(str); d.current = str(d.current); },
+  label: 'Name picker', icon: 'picker', size: [480, 420], min: [280, 260], settings: true,
+  defaults: () => ({ classId: null, repeats: CONFIG.namePicker.allowRepeats, picked: [], current: '', style: CONFIG.namePicker.style, suspense: CONFIG.namePicker.suspenseSeconds }),
+  fix(d) {
+    d.classId = d.classId ? str(d.classId) : null; d.repeats = !!d.repeats; d.picked = (Array.isArray(d.picked) ? d.picked : []).map(str); d.current = str(d.current);
+    d.style = d.style === 'wheel' ? 'wheel' : 'card';
+    d.suspense = [0, 2, 4].includes(d.suspense) ? d.suspense : [0, 2, 4].includes(CONFIG.namePicker.suspenseSeconds) ? CONFIG.namePicker.suspenseSeconds : 2;
+  },
   clear: { label: 'Picked names and absentees cleared', fn: d => { d.picked = []; d.current = ''; clearAbsent(d.classId); } },
   mount(body, w, ctx) {
-    const d = w.data;
+    const d = w.data, wheelMode = d.style === 'wheel';
     const cls = () => store.classes.find(c => c.id === d.classId);
     if (!cls() && store.classes.length) { d.classId = store.classes[0].id; d.picked = []; d.current = ''; }
     const sel = classSelect(d.classId, v => { d.classId = v; d.picked = []; d.current = ''; ctx.save(); ctx.rerender(); });
     const absentBtn = h('button', { class: 'btn small edit-only', type: 'button', title: 'Mark who is away today', onclick: () => openAbsentModal(d.classId) });
     const manage = h('button', { class: 'btn small edit-only', type: 'button', onclick: () => openClassManager(d.classId) });
     const nameEl = h('div', { class: 'pk-name' });
-    const pickBtn = h('button', { class: 'btn primary', type: 'button', onclick: pick }, 'Pick a name');
+    const wheelEl = h('div', { class: 'pk-wheel' });
+    const pickBtn = h('button', { class: 'btn primary', type: 'button', onclick: () => pick() }, 'Pick a name');
     const rep = toggleSwitch('Allow repeats', d.repeats, v => { d.repeats = v; d.picked = []; ctx.save(); draw(); });
-    const left = h('button', { class: 'linkbtn', type: 'button', onclick: showLeft });
     const reset = h('button', { class: 'btn small', type: 'button', onclick: () => { d.picked = []; d.current = ''; ctx.save(); draw(); } }, 'Start over');
-    body.append(h('div', { class: 'pk' },
+    body.append(h('div', { class: 'pk' + (wheelMode ? ' wheel-mode' : '') },
       h('div', { class: 'pk-top' }, sel, absentBtn, manage),
-      h('div', { class: 'pk-stage' }, nameEl),
-      h('div', { class: 'pk-bottom' }, pickBtn, h('div', { class: 'form-row', style: 'gap:10px' }, rep, left, reset))));
-    let rolling = false;
-    const timers = [];
+      h('div', { class: 'pk-stage' }, wheelMode ? h('div', { class: 'pk-wrap' }, wheelEl, nameEl) : nameEl),
+      h('div', { class: 'pk-bottom' }, pickBtn, h('div', { class: 'form-row', style: 'gap:10px' }, rep, reset))));
+    let rolling = false, keepWheel = false, wheelNames = null, rot = 0, rotG = null;
+    const timers = [], later = (fn, ms) => timers.push(setTimeout(fn, ms));
     const present = () => (cls() ? cls().names.filter(n => !absentFor(d.classId).includes(n)) : []);
     const pool = () => d.repeats ? present() : present().filter(n => !d.picked.includes(n));
+    const same = (a, b) => !!a && a.length === b.length && a.every((x, i) => x === b[i]);
+
+    // the wheel: one slice for each name that can still be picked; the pointer is at the top
+    function buildWheel(names) {
+      wheelNames = names.slice(); rot = 0;
+      if (!names.length) { wheelEl.innerHTML = ''; rotG = null; return; }
+      const C = CONFIG.namePicker.wheelColours, n = names.length, R = 96, seg = 360 / n;
+      const fs = Math.max(5, Math.min(11, (2 * Math.PI * 62 / n) * 0.62));
+      const P = a => [R * Math.cos(a * Math.PI / 180), R * Math.sin(a * Math.PI / 180)].map(v => v.toFixed(2)).join(' ');
+      let s = `<svg viewBox="-104 -112 208 216" role="img" aria-label="Name wheel"><g class="pk-rot">`;
+      names.forEach((nm, i) => {
+        const a0 = i * seg - 90, mid = a0 + seg / 2, flip = mid > 90 && mid < 270;
+        s += n === 1 ? `<circle r="${R}" fill="${C[0]}"/>` : `<path d="M0 0L${P(a0)}A${R} ${R} 0 ${seg > 180 ? 1 : 0} 1 ${P(a0 + seg)}Z" fill="${C[i % C.length]}"/>`;
+        s += `<text transform="rotate(${(flip ? mid + 180 : mid).toFixed(2)})" x="${flip ? -(R - 7) : R - 7}" text-anchor="${flip ? 'start' : 'end'}" dominant-baseline="central" font-size="${fs.toFixed(1)}">${esc(nm.length > 16 ? nm.slice(0, 15) + '…' : nm)}</text>`;
+      });
+      wheelEl.innerHTML = s + `</g><circle r="13" class="pk-hub"/><path d="M-9 -110H9L0 -91Z" class="pk-pointer"/></svg>`;
+      rotG = wheelEl.querySelector('.pk-rot');
+    }
+    function spin(winner, ms, done) {
+      const n = wheelNames.length, seg = 360 / n, i = wheelNames.indexOf(winner);
+      const want = -(i * seg + seg / 2 + (Math.random() - 0.5) * seg * 0.6);   // that slice (not quite centred) under the pointer
+      const target = rot + (2 + Math.round(ms / 1000)) * 360 + ((((want - rot) % 360) + 360) % 360);
+      void wheelEl.offsetWidth;
+      rotG.style.transition = `transform ${ms}ms cubic-bezier(.15,.7,.1,1)`; rotG.style.transform = `rotate(${target.toFixed(2)}deg)`; rot = target;
+      later(done, ms + 80);
+    }
+    // the card: names cycle past in list order, slowing down, and stop on the chosen name
+    function roll(p, winner, ms, done) {
+      const n = p.length, steps = Math.max(10, Math.min(48, Math.round(ms / 85))), start = (((p.indexOf(winner) - steps) % n) + n) % n;
+      for (let k = 1; k <= steps; k++) later(() => { nameEl.className = 'pk-name rolling'; nameEl.textContent = p[(start + k) % n]; }, ms * Math.pow(k / steps, 2.2));
+      later(done, ms + 220);
+    }
 
     function draw() {
       const all = present(), p = pool(), away = cls() ? absentFor(d.classId).length : 0;
       d.picked = d.picked.filter(n => all.includes(n));
+      if (wheelMode && !rolling) { if (keepWheel) keepWheel = false; else if (!same(wheelNames, p)) buildWheel(p); }
       nameEl.className = 'pk-name';
       const idle = t => { nameEl.classList.add('idle'); nameEl.textContent = t; };
       if (!store.classes.length) idle('Create a class list to start');
       else if (!all.length) idle(cls() && cls().names.length ? 'Everyone is marked absent' : 'This class has no names yet');
       else if (!d.repeats && !p.length) { if (d.current) nameEl.textContent = d.current; else idle('Everyone has been picked'); }
       else if (d.current) nameEl.textContent = d.current;
-      else idle('Press “Pick a name”');
+      else idle(wheelMode ? 'Press “Pick a name” to spin' : 'Press “Pick a name”');
       manage.textContent = ''; manage.append(icon(store.classes.length ? 'people' : 'plus'), store.classes.length ? 'Edit lists' : 'Add a class');
       absentBtn.hidden = !cls();
       absentBtn.textContent = ''; absentBtn.append(icon('absent'), away ? `Absent (${away})` : 'Absent…');
       pickBtn.disabled = rolling || !p.length;
       pickBtn.textContent = (!d.repeats && all.length && !p.length) ? 'Everyone picked' : 'Pick a name';
-      left.hidden = d.repeats || !all.length;
-      left.textContent = `${p.length} of ${all.length} left`;
       reset.hidden = d.repeats || !d.picked.length;
     }
     function pick() {
       const p = pool(); if (rolling || !p.length) return;
       const winner = p[Math.floor(Math.random() * p.length)];
       const finish = () => {
-        rolling = false; d.current = winner;
+        rolling = false; d.current = winner; keepWheel = wheelMode;   // the wheel stays where it stopped until the next spin
         if (!d.repeats) d.picked.push(winner);
         ctx.save(); draw();
         nameEl.classList.remove('landed'); void nameEl.offsetWidth; nameEl.classList.add('landed');
       };
-      const names = present();
-      if (reduceMotion() || !CONFIG.namePicker.rollingAnimation || names.length < 2) { finish(); return; }
+      const ms = reduceMotion() ? 0 : (wheelMode ? Math.max(1.5, d.suspense) : d.suspense) * 1000;
+      if (!ms || (!wheelMode && p.length < 2)) { finish(); return; }
       rolling = true; pickBtn.disabled = true;
-      let t = 0, prev = '';
-      [55, 55, 55, 60, 65, 70, 80, 90, 105, 125, 150, 185, 230].forEach(dl => {
-        t += dl;
-        timers.push(setTimeout(() => {
-          let n; do { n = names[Math.floor(Math.random() * names.length)]; } while (n === prev && names.length > 1);
-          prev = n; nameEl.className = 'pk-name rolling'; nameEl.textContent = n;
-        }, t));
-      });
-      timers.push(setTimeout(finish, t + 260));
-    }
-    function showLeft() {
-      const notYet = pool(), done = d.picked.slice();
-      openModal({
-        title: `${cls() ? cls().name : ''} — who's been picked`,
-        body: h('div', { class: 'left-cols' },
-          h('div', {}, h('h3', { text: `Not yet picked (${notYet.length})` }), h('ul', {}, notYet.map(n => h('li', { text: n })))),
-          h('div', {}, h('h3', { text: `Picked (${done.length})` }), done.length ? h('ol', {}, done.map(n => h('li', { text: n }))) : h('p', { class: 'muted', text: 'No one yet.' }))),
-        actions: [{ label: 'Close', kind: 'primary' }],
-      });
+      if (wheelMode) { if (!same(wheelNames, p)) buildWheel(p); nameEl.className = 'pk-name idle'; nameEl.textContent = ''; spin(winner, ms, finish); }
+      else roll(p, winner, ms, finish);
     }
     draw();
     return { destroy() { timers.forEach(clearTimeout); }, next: pick, pick };
+  },
+  settings(w, ctx) {
+    const d = w.data;
+    return [
+      h('div', { class: 'form-sec' }, h('h3', { text: 'Style' }),
+        seg([['card', 'Name card'], ['wheel', 'Spinning wheel']], d.style, v => {
+          d.style = v; ctx.save(); ctx.rerender();
+          if (v === 'wheel') toast('Tip: make the Name picker bigger, or spotlight it (S), so the names on the wheel are easy to read');
+        }, 'Style')),
+      h('div', { class: 'form-sec' }, h('h3', { text: 'Suspense before the name appears' }),
+        seg([[0, 'None'], [2, '2 seconds'], [4, '4 seconds']], d.suspense, v => { d.suspense = v; ctx.save(); }, 'Suspense'),
+        h('p', { class: 'muted', text: 'Name card: names cycle past in list order and slow down. Wheel: it spins and slows (at least 1½ seconds).' })),
+      h('button', { class: 'btn', type: 'button', onclick: () => openPickedList(d) }, icon('people'), 'See who has been picked…'),
+    ];
   },
 },
 
@@ -1999,6 +2668,201 @@ groups: {
   },
 },
 
+/* ---------- Seating plan (one plan per class for each room, shared by every board) ---------- */
+seating: {
+  label: 'Seating plan', icon: 'seating', size: [1000, 640], min: [460, 360], settings: true,
+  defaults: () => ({ classId: null, room: 'std', flip: !CONFIG.seatingPlan.frontAtTop }),
+  fix(d) { d.classId = d.classId ? str(d.classId) : null; d.room = d.room === 'sp' ? 'sp' : 'std'; d.flip = !!d.flip; },
+  mount(body, w, ctx) {
+    const d = w.data;
+    const cls = () => store.classes.find(c => c.id === d.classId);
+    if (!cls() && store.classes.length) d.classId = store.classes[0].id;
+    const root = h('div', { class: 'sp' + (d.flip ? ' flip' : '') });
+    body.append(root);
+    let mode = 'seat', picked = null;   // picked: a seat { k } / { ti, ci }, or a name { name } from "Not seated"
+    const plan = () => seatingFor(d.classId);
+    const commit = () => { ctx.save(); draw(); for (const [, r] of instances) if (r.w.type === 'seating' && r.w.id !== w.id) rerenderWidget(r.w.id); };
+    function withUndo(msg, fn) {
+      const id = d.classId, room = d.room, snap = JSON.stringify(plan()[room]);
+      fn(); commit();
+      toast(msg, { label: 'Undo', fn: () => { seatingFor(id)[room] = JSON.parse(snap); save(); rerenderType(['seating']); } });
+    }
+    const isPicked = ref => !!picked && picked.name === undefined && (ref.k !== undefined ? picked.k === ref.k : picked.ti === ref.ti && picked.ci === ref.ci);
+
+    // seating students: tap a seat then another to swap; tap a name in "Not seated", then a seat
+    function tapSeat(ref) {
+      const P = plan();
+      if (!picked) { picked = ref; draw(); return; }
+      if (picked.name !== undefined) { setSeat(P, ref, picked.name); picked = null; commit(); return; }
+      if (isPicked(ref)) { picked = null; draw(); return; }
+      const a = getSeat(P, picked), b = getSeat(P, ref); setSeat(P, picked, b); setSeat(P, ref, a); picked = null; commit();
+    }
+    function tapName(n) {
+      if (picked && picked.name === undefined) { setSeat(plan(), picked, n); picked = null; commit(); return; }
+      picked = picked && picked.name === n ? null : { name: n }; draw();
+    }
+    function fill(how) {
+      const names = cls().names.slice();
+      if (how === 'random') for (let i = names.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [names[i], names[j]] = [names[j], names[i]]; }
+      else names.sort((a, b) => a.localeCompare(b));
+      const P = plan(), seats = seatList(P, d.room), extra = names.length - seats.length;
+      picked = null;
+      withUndo(extra > 0 ? `Seats filled. ${extra} student${extra > 1 ? 's have' : ' has'} no seat — add tables` : 'Seats filled',
+        () => seats.forEach((ref, i) => setSeat(P, ref, names[i] || '')));
+    }
+
+    // Standard classroom: tables on a grid; a gap is an aisle
+    const tidyStd = S => {
+      const has = (r, c) => !S.gaps.includes(seatKey(r, c));
+      while (S.rows > 1 && !Array.from({ length: S.cols }, (_, c) => has(S.rows - 1, c)).some(Boolean)) S.rows--;
+      while (S.cols > 1 && !Array.from({ length: S.rows }, (_, r) => has(r, S.cols - 1)).some(Boolean)) S.cols--;
+      S.gaps = S.gaps.filter(k => { const [r, c] = k.split('-').map(Number); return r < S.rows && c < S.cols; });
+      pruneSeating(plan(), cls().names);
+    };
+    function addTable(r, c) {
+      const S = plan().std;
+      if ((r >= S.rows && S.rows >= 12) || (c >= S.cols && S.cols >= 12)) { toast('That is the most rows or columns that fit (12)'); return; }
+      if (r >= S.rows) { for (let cc = 0; cc < S.cols; cc++) S.gaps.push(seatKey(S.rows, cc)); S.rows++; }   // a new row with just this table
+      if (c >= S.cols) { for (let rr = 0; rr < S.rows; rr++) S.gaps.push(seatKey(rr, S.cols)); S.cols++; }
+      S.gaps = S.gaps.filter(k => k !== seatKey(r, c)); commit();
+    }
+    function stdPlan(P, absent) {
+      const S = P.std, edit = mode === 'edit', R = S.rows + (edit ? 1 : 0), C = S.cols + (edit ? 1 : 0);
+      const g = h('div', { class: 'sp-grid', style: `--cols:${C};--rows:${R};grid-template-columns:repeat(${C},minmax(0,1fr));grid-template-rows:repeat(${R},minmax(0,1fr))` });
+      for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+        const k = seatKey(r, c);
+        if (r < S.rows && c < S.cols && !S.gaps.includes(k)) {
+          g.append(seat({ k }, absent, edit ? () => withUndo('Table removed', () => { S.gaps.push(k); delete S.seats[k]; tidyStd(S); }) : null));
+        } else if (edit) g.append(h('button', { type: 'button', class: 'sp-add', title: 'Add a table here', 'aria-label': 'Add a table here', onclick: () => addTable(r, c) }, icon('plus')));
+        else g.append(h('div', { class: 'sp-gap' }));
+      }
+      return g;
+    }
+    // Special room: round tables with chairs, in rows
+    function spPlan(P, absent) {
+      const T = P.sp.tables, per = Math.min(P.sp.perRow, T.length), rows = Math.ceil(T.length / per), edit = mode === 'edit';
+      const g = h('div', { class: 'sp-tables', style: `grid-template-columns:repeat(${per},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr))` });
+      T.forEach((t, ti) => {
+        const ring = h('div', { class: 'sp-ring' }, h('div', { class: 'sp-round', title: `Table ${ti + 1}` }, h('span', { text: String(ti + 1) })));
+        t.seats.forEach((_, ci) => ring.append(seat({ ti, ci }, absent, null, 'sp-chair')));   // placed by placeChairs()
+        g.append(h('div', { class: 'sp-table' }, edit ? h('div', { class: 'sp-tctl' },
+          ib('minus', 'One chair fewer', () => chairs(ti, -1)), h('b', { text: `${t.chairs} chairs` }), ib('plus', 'One more chair', () => chairs(ti, 1)),
+          h('span', { class: 'spacer' }), ib('left', 'Move this table earlier', () => moveTable(ti, -1)), ib('right', 'Move this table later', () => moveTable(ti, 1)),
+          T.length > 1 ? ib('trash', 'Remove this table', () => withUndo('Table removed', () => T.splice(ti, 1))) : null) : null, ring));
+      });
+      return g;
+    }
+    /* chairs go round each table; text shrinks (down to 16px, then one line) until no two chairs overlap */
+    function placeChairs() {
+      root.querySelectorAll('.sp-ring').forEach(ring => {
+        const W = ring.clientWidth, H = ring.clientHeight, cs = [...ring.querySelectorAll('.sp-chair')], n = cs.length;
+        if (!W || !H || !n) return;
+        const ang = cs.map((_, i) => -Math.PI / 2 + 2 * Math.PI * i / n);
+        let fit = null;   // prefer two lines, then wider chairs, then bigger text
+        search: for (const lines of [2, 1]) for (const k of [0.42, 0.38, 0.34, 0.3, 0.26, 0.22]) for (let f = clamp(Math.round(H / 9), 16, 24); f >= 16; f--) {
+          const pw = Math.min(W * k, 230), ph = lines * 1.15 * f + 12, rx = Math.max(0, W / 2 - pw / 2 - 2), ry = Math.max(0, H / 2 - ph / 2 - 2);
+          const pts = ang.map(a => [W / 2 + rx * Math.cos(a), H / 2 + ry * Math.sin(a)]);
+          fit = { lines, f, pw, ph, rx, ry, pts };
+          if (!pts.some((p, i) => pts.some((q, j) => j > i && Math.abs(p[0] - q[0]) < pw + 4 && Math.abs(p[1] - q[1]) < ph + 4))) break search;
+        }
+        const pw = fit.pw;
+        cs.forEach((c, i) => {
+          Object.assign(c.style, { left: fit.pts[i][0] + 'px', top: fit.pts[i][1] + 'px', width: pw + 'px', minHeight: (fit.ph - 6) + 'px', fontSize: fit.f + 'px' });
+          c.classList.toggle('one', fit.lines === 1);
+        });
+        const D = Math.max(28, Math.min(2 * tableRadius(W / 2, H / 2, fit.pts, pw, fit.ph) - 12, W * 0.4)), round = ring.querySelector('.sp-round');
+        round.style.width = D + 'px'; round.style.fontSize = clamp(Math.round(D * 0.42), 16, 30) + 'px';
+      });
+    }
+    const ro = new ResizeObserver(() => placeChairs()); ro.observe(root);
+    function chairs(ti, dir) {
+      const t = plan().sp.tables[ti], n = clamp(t.chairs + dir, 2, 8); if (n === t.chairs) return;
+      t.chairs = n; t.seats = Array.from({ length: n }, (_, i) => t.seats[i] || ''); commit();
+    }
+    function moveTable(ti, dir) { const T = plan().sp.tables, j = ti + dir; if (j < 0 || j >= T.length) return; [T[ti], T[j]] = [T[j], T[ti]]; commit(); }
+
+    function seat(ref, absent, onRemove, cls = 'sp-seat') {
+      const n = getSeat(plan(), ref);
+      const b = h('button', { type: 'button', class: cls + (n ? '' : ' empty') + (n && absent.has(n) ? ' absent' : '') + (isPicked(ref) ? ' picked' : ''),
+        title: onRemove ? 'Remove this table' : (n ? n + (absent.has(n) ? ' (absent today)' : '') : 'Empty seat') }, h('span', { text: n }));
+      if (onRemove) { b.classList.add('removable'); b.append(h('i', { class: 'sp-x', 'aria-hidden': 'true' }, icon('close'))); b.addEventListener('click', onRemove); }
+      else b.addEventListener('click', () => tapSeat(ref));
+      return b;
+    }
+
+    function draw() {
+      root.textContent = '';
+      const c = cls();
+      if (!c) {
+        root.append(h('div', { class: 'gm-empty' }, h('div', {}, h('p', { text: 'Create a class list first.' }),
+          h('button', { class: 'btn', type: 'button', onclick: () => openClassManager() }, icon('people'), 'Class lists'))));
+        return;
+      }
+      const P = plan(); pruneSeating(P, c.names);
+      const absent = new Set(absentFor(d.classId));
+      root.append(h('div', { class: 'sp-top edit-only' },
+        classSelect(d.classId, v => { d.classId = v; picked = null; ctx.save(); draw(); }),
+        seg([['std', 'Standard classroom'], ['sp', 'Special room']], d.room, v => { d.room = v; picked = null; ctx.save(); draw(); }, 'Room'),
+        h('span', { class: 'spacer' }),
+        h('button', { class: 'btn small', type: 'button', title: 'Mark who is away today', onclick: () => openAbsentModal(d.classId) }, icon('absent'), absent.size ? `Absent (${absent.size})` : 'Absent…'),
+        h('button', { class: 'btn small', type: 'button', onclick: () => openSeatingExport(d) }, icon('download'), 'Export…')));
+      const front = h('div', { class: 'sp-front', text: CONFIG.seatingPlan.frontLabel });
+      const area = h('div', { class: 'sp-plan' }, d.room === 'std' ? stdPlan(P, absent) : spPlan(P, absent));
+      root.append(...(d.flip ? [area, front] : [front, area]));
+      // students without a seat
+      const seated = new Set(seatList(P, d.room).map(r => getSeat(P, r)).filter(Boolean));
+      const left = c.names.filter(n => !seated.has(n));
+      const seatPicked = picked && picked.name === undefined && getSeat(P, picked);
+      if (mode === 'seat' && (left.length || seatPicked)) {
+        const strip = h('div', { class: 'sp-strip edit-only' + (seatPicked ? ' target' : '') },
+          h('b', { text: seatPicked ? `Not seated (${left.length}) — tap here to take ${seatPicked} out of their seat` : `Not seated (${left.length})` }),
+          left.map(n => h('button', { type: 'button', class: 'chip' + (picked && picked.name === n ? ' on' : '') + (absent.has(n) ? ' absent' : ''),
+            onclick: e => { e.stopPropagation(); tapName(n); } }, n)));
+        strip.addEventListener('click', () => { if (seatPicked) { setSeat(P, picked, ''); picked = null; commit(); } });
+        root.append(strip);
+      }
+      const foot = h('div', { class: 'sp-foot edit-only' }, seg([['seat', 'Seat students'], ['edit', 'Edit tables']], mode, v => { mode = v; picked = null; draw(); }, 'Mode'));
+      if (mode === 'seat') foot.append(
+        h('button', { class: 'btn small', type: 'button', onclick: () => fill('random') }, icon('shuffle'), 'Fill randomly'),
+        h('button', { class: 'btn small', type: 'button', onclick: () => fill('az') }, 'Fill A–Z'),
+        h('button', { class: 'btn small', type: 'button', onclick: () => { picked = null; withUndo('Seats cleared', () => seatList(P, d.room).forEach(r => setSeat(P, r, ''))); } }, icon('eraser'), 'Clear'));
+      else if (d.room === 'std') {
+        const S = P.std;
+        foot.append(
+          h('button', { class: 'btn small', type: 'button', disabled: S.rows >= 12, onclick: () => { S.rows++; commit(); } }, icon('plus'), 'Row'),
+          h('button', { class: 'btn small', type: 'button', disabled: S.cols >= 12, onclick: () => { S.cols++; commit(); } }, icon('plus'), 'Column'),
+          h('button', { class: 'btn small', type: 'button', disabled: S.rows <= 1, onclick: () => withUndo('Back row removed', () => { S.rows--; tidyStd(S); }) }, icon('minus'), 'Row'),
+          h('button', { class: 'btn small', type: 'button', disabled: S.cols <= 1, onclick: () => withUndo('Column removed', () => { S.cols--; tidyStd(S); }) }, icon('minus'), 'Column'),
+          h('span', { class: 'muted', text: `${seatList(P, 'std').length} tables · tap a table to remove it, or + to add one` }));
+      } else {
+        foot.append(
+          h('button', { class: 'btn small', type: 'button', disabled: P.sp.tables.length >= 16, onclick: () => { P.sp.tables.push({ chairs: CONFIG.seatingPlan.special.chairs, seats: Array(CONFIG.seatingPlan.special.chairs).fill('') }); commit(); } }, icon('plus'), 'Table'),
+          h('span', { class: 'muted', text: 'Tables per row' }),
+          stepper(P.sp.perRow, 1, 6, 1, v => { P.sp.perRow = v; commit(); }).el,
+          h('span', { class: 'muted', text: `${P.sp.tables.length} tables · ${seatList(P, 'sp').length} chairs` }));
+        foot.querySelector('.stepper').classList.add('compact');
+      }
+      root.append(foot);
+      placeChairs();
+    }
+    draw();
+    return { destroy() { ro.disconnect(); } };
+  },
+  settings(w, ctx) {
+    const d = w.data;
+    return [
+      checkbox('Show the front at the bottom (your view from the front of the room)', d.flip, v => { d.flip = v; ctx.save(); ctx.rerender(); }),
+      h('p', { class: 'muted', text: 'Each class keeps one Standard classroom plan and one Special room plan. They look the same on every board and go into backups.' }),
+      h('button', { class: 'btn', type: 'button', onclick: async () => {
+        if (!d.classId || !(await confirmBox('Start this room again?', 'Go back to the starting tables and clear the seats for this room?', 'Start again', true))) return;
+        const room = d.room, snap = JSON.stringify(seatingFor(d.classId)[room]), id = d.classId;
+        seatingFor(id)[room] = defaultSeating()[room]; save(); rerenderType(['seating']);
+        toast('Room reset', { label: 'Undo', fn: () => { seatingFor(id)[room] = JSON.parse(snap); save(); rerenderType(['seating']); } });
+      } }, icon('reset'), 'Start this room again (starting tables, empty seats)'),
+    ];
+  },
+},
+
 /* ---------- Group points ---------- */
 points: {
   label: 'Group points', icon: 'points', size: [660, 380], min: [300, 220], settings: true,
@@ -2067,6 +2931,46 @@ points: {
    LEARNING ROUTINES
    ============================================================ */
 
+/* ---------- Starter (first 5 minutes, while students settle in) ---------- */
+starter: {
+  label: 'Starter', icon: 'starter', size: [720, 460], min: [380, 280], settings: true,
+  defaults: () => ({ task: 0, boxes: [], fs: 28, timer: timerDefaults(CONFIG.starter.minutes * 60) }),
+  fix(d) {
+    d.task = Math.max(0, Math.round(numOr(d.task, 0)));
+    d.boxes = (Array.isArray(d.boxes) ? d.boxes : []).slice(0, 20).map(x => str(x).slice(0, 1000));
+    fixFs(d, 28, 72);
+    d.timer = Object.assign(timerDefaults(CONFIG.starter.minutes * 60), d.timer && typeof d.timer === 'object' ? d.timer : {}); fixTimer(d.timer);
+  },
+  clear: { label: 'Starter timers reset', fn: d => tReset(d.timer) },
+  mount(body, w, ctx) {
+    const d = w.data, T = starterTasks();
+    d.task = clamp(d.task, 0, T.length - 1); const t = T[d.task];
+    const root = h('div', { class: 'stt' });
+    const sel = h('select', { class: 'input edit-only', 'aria-label': 'Choose a starter' },
+      T.map((x, i) => { const o = h('option', { value: String(i) }, x.name); if (i === d.task) o.selected = true; return o; }));
+    sel.addEventListener('change', () => { d.task = +sel.value; tReset(d.timer); ctx.save(); ctx.rerender(); });
+    const text = h('div', { class: 'rt-text' }); renderLines(text, t.text);
+    const box = h('div', { class: 'stt-box', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-ph': t.hint || "Type anything for today's starter (optional)" });
+    box.textContent = d.boxes[d.task] || '';
+    box.addEventListener('input', () => { if (!box.textContent.trim()) box.textContent = ''; d.boxes[d.task] = box.textContent; ctx.save(); });
+    const t3 = stepTimer(d.timer, ctx, 'Starter timer');
+    root.append(
+      h('div', { class: 'stt-top' }, h('div', { class: 'rt-count', text: `Starter · ${fmtMin(d.timer.duration / 60000)}` }), h('span', { class: 'spacer' }), sel),
+      h('div', { class: 'stt-main' }, h('div', { class: 'rt-title', text: t.name }), text, box),
+      h('div', { class: 'stt-foot' }, t3.el, h('span', { class: 'spacer' }), h('span', { class: 'edit-only' }, textSizer(d, ctx, root, 72))));
+    body.append(root);
+    return { tick: t3.tick, play: t3.toggle };
+  },
+  settings(w, ctx) {
+    const d = w.data;
+    return [
+      field('Timer (minutes)', stepper(d.timer.duration / 60000, 1, 20, 1, v => { tSet(d.timer, v * 60000); ctx.save(); ctx.rerender(); }).el),
+      h('button', { class: 'btn', type: 'button', onclick: () => openLibraryEditor('starter') }, icon('edit'), 'Edit the starter tasks…'),
+      h('p', { class: 'muted', text: 'Choose the task with the menu on the card. The box under the task is for today’s words or questions; it is hidden in focus mode when empty. Space or the clicker starts the timer.' }),
+    ];
+  },
+},
+
 /* ---------- Routine card (SAC / QFT / Socratic Seminar) ---------- */
 routine: {
   label: 'Routine', icon: 'routine', size: [900, 560], min: [420, 320], settings: true, fallback: true,
@@ -2107,11 +3011,7 @@ routine: {
     const back = h('button', { class: 'btn small', type: 'button', onclick: () => jump(d.idx - 1) }, icon('left'), 'Back');
     const next = h('button', { class: 'btn primary small', type: 'button', onclick: () => jump(d.idx + 1) }, 'Next', icon('right'));
     const dots = h('div', { class: 'rt-dots' });
-    const tTime = h('span', { class: 'rt-time' });
-    const toggleTimer = () => { tToggle(d.timer); ctx.save(); draw(Date.now()); syncT(); };
-    const tGo = h('button', { class: 'ib', type: 'button', onclick: toggleTimer });
-    const tRe = ib('reset', 'Reset step timer', () => { tReset(d.timer); ctx.save(); draw(Date.now()); syncT(); });
-    const timerBox = h('div', { class: 'rt-timer', title: 'Timer for this step' }, icon('analog'), tTime, tGo, tRe);
+    const st = stepTimer(d.timer, ctx, 'Step timer'), timerBox = st.el;
     const stBtn = h('button', { class: 'btn small edit-only', type: 'button', onclick: () => { d.showStarters = !d.showStarters; ctx.save(); drawStep(); } });
     const sizer = textSizer(d, ctx, root, 60);
     root.append(
@@ -2120,10 +3020,6 @@ routine: {
       h('div', { class: 'rt-foot' }, back, dots, next, h('span', { class: 'spacer' }), timerBox, stBtn, h('span', { class: 'edit-only' }, sizer)));
     body.append(root);
 
-    function syncT() {
-      tGo.textContent = ''; tGo.append(icon(d.timer.running ? 'pause' : 'play'));
-      tGo.title = d.timer.running ? 'Pause step timer' : 'Start step timer'; tGo.setAttribute('aria-label', tGo.title);
-    }
     function jump(j) {
       j = clamp(j, 0, steps.length - 1); if (j === d.idx || !steps[j]) return;
       d.idx = j; tSet(d.timer, Math.max(0.5, steps[j].time || 0) * 60000); ctx.save(); drawStep();
@@ -2144,15 +3040,13 @@ routine: {
       dots.textContent = '';
       steps.forEach((st, i) => dots.append(h('button', { type: 'button', class: i === d.idx ? 'on' : (i < d.idx ? 'past' : ''), title: `Step ${i + 1}: ${st.title}`, 'aria-label': `Go to step ${i + 1}: ${st.title}`, onclick: () => jump(i) })));
       timerBox.hidden = !s.time;
-      draw(Date.now()); syncT();
+      st.refresh();
     }
-    function draw(now) { tTime.textContent = fmtMs(tLeft(d.timer, now)); timerBox.classList.toggle('done', d.timer.done); }
-    if (tCheck(d.timer, Date.now())) ctx.save();
     drawStep();
     return {
-      tick(now) { if (tCheck(d.timer, now)) { if (d.timer.chime) chime(); ctx.save(); syncT(); } draw(now); },
+      tick: st.tick,
       next: () => jump(d.idx + 1), back: () => jump(d.idx - 1),
-      play() { if (!steps[d.idx] || !steps[d.idx].time) return false; toggleTimer(); },   // false = no timer on this step
+      play() { if (!steps[d.idx] || !steps[d.idx].time) return false; st.toggle(); },   // false = no timer on this step
     };
   },
   settings(w, ctx) {
@@ -2185,7 +3079,7 @@ talk: {
     const d = w.data;
     const root = h('div', { class: 'tk' }, h('div', { class: 'tk-grid' }, d.cats.map(starterBlock)));
     body.append(root, h('div', { class: 'tk-foot edit-only' },
-      h('span', { class: 'muted spacer', text: 'Choose which sets to show in ⚙ settings.' }), textSizer(d, ctx, root, 60)));
+      h('span', { class: 'spacer' }), textSizer(d, ctx, root, 60)));
   },
   settings(w, ctx) {
     const d = w.data;
@@ -2235,7 +3129,7 @@ frayer: {
       toast('Frayer model cleared', { label: 'Undo', fn: () => { d.term = old.term; d.cells = old.cells; ctx.save(); ctx.rerender(); } });
     }
     root.append(grid, h('div', { class: 'fr-foot edit-only' },
-      h('span', { class: 'muted spacer', text: 'Click a box to type. Enter starts a new bullet point.' }),
+      h('span', { class: 'spacer' }),
       h('button', { class: 'btn small', type: 'button', onclick: clearAll }, icon('eraser'), 'Clear'), textSizer(d, ctx, root, 60)));
     body.append(root);
     let th = -1;   // the box corners make room for the centre term; the term is sized from the box, not the text size
@@ -2449,7 +3343,7 @@ exit: {
         APPS.exit.clear.fn(d); ctx.save(); ctx.rerender();
         toast('Responses cleared', { label: 'Undo', fn: () => { Object.assign(d, old); ctx.save(); ctx.rerender(); } });
       } }, icon('eraser'), 'Clear responses') : null,
-      h('span', { class: 'muted spacer', text: resp ? 'Type class responses under each prompt.' : 'Click a prompt to edit it. Switch type or mode in ⚙ settings.' }),
+      h('span', { class: 'spacer' }),
       textSizer(d, ctx, root, 60)));
     body.append(root);
   },
@@ -2464,6 +3358,51 @@ exit: {
     ];
   },
 },
+
+/* ---------- Brain break (one step at a time) ---------- */
+brainbreak: {
+  label: 'Brain break', icon: 'brainbreak', size: [640, 470], min: [360, 280], settings: true, fallback: true,
+  defaults: () => ({ pick: 0, step: 0, fs: 28, timer: timerDefaults(Math.round(((brainBreaks()[0] || {}).minutes || 2) * 60)) }),
+  fix(d) {
+    d.pick = Math.max(0, Math.round(numOr(d.pick, 0))); d.step = Math.max(0, Math.round(numOr(d.step, 0)));
+    fixFs(d, 28, 72);
+    d.timer = Object.assign(timerDefaults(120), d.timer && typeof d.timer === 'object' ? d.timer : {}); fixTimer(d.timer);
+  },
+  clear: { label: 'Brain breaks back to step 1', fn: d => { d.step = 0; tReset(d.timer); } },
+  mount(body, w, ctx) {
+    const d = w.data, B = brainBreaks();
+    d.pick = clamp(d.pick, 0, B.length - 1); const b = B[d.pick];
+    d.step = clamp(d.step, 0, Math.max(0, b.steps.length - 1));
+    const root = h('div', { class: 'bk' });
+    const sel = h('select', { class: 'input edit-only', 'aria-label': 'Choose a brain break' },
+      B.map((x, i) => { const o = h('option', { value: String(i) }, x.name); if (i === d.pick) o.selected = true; return o; }));
+    sel.addEventListener('change', () => { d.pick = +sel.value; d.step = 0; tSet(d.timer, B[d.pick].minutes * 60000); ctx.save(); ctx.rerender(); });
+    const list = h('ol', { class: 'bk-steps' });
+    const items = b.steps.map((s, i) => { const li = h('li', { title: 'Go to this step' }, h('span', { text: s })); li.addEventListener('click', () => go(i)); list.append(li); return li; });
+    const back = h('button', { class: 'btn small', type: 'button', onclick: () => go(d.step - 1) }, icon('left'), 'Back');
+    const next = h('button', { class: 'btn primary small', type: 'button', onclick: () => go(d.step + 1) }, 'Next', icon('right'));
+    const t3 = stepTimer(d.timer, ctx, 'Brain break timer');
+    root.append(
+      h('div', { class: 'stt-top' }, h('div', { class: 'rt-count', text: `Brain break · ${fmtMin(b.minutes)}` }), h('span', { class: 'spacer' }), sel),
+      h('div', { class: 'rt-title', text: b.name }), list,
+      h('div', { class: 'bk-foot' }, back, next, h('span', { class: 'spacer' }), t3.el, h('span', { class: 'edit-only' }, textSizer(d, ctx, root, 72))));
+    body.append(root);
+    function go(i) { const j = clamp(i, 0, Math.max(0, b.steps.length - 1)); if (j !== d.step) { d.step = j; ctx.save(); } draw(); }
+    function draw() {
+      items.forEach((li, i) => { li.classList.toggle('on', i === d.step); li.classList.toggle('past', i < d.step); });
+      back.disabled = d.step === 0; next.disabled = d.step >= b.steps.length - 1;
+      if (items[d.step]) items[d.step].scrollIntoView({ block: 'nearest' });
+    }
+    draw();
+    return { tick: t3.tick, play: t3.toggle, next: () => go(d.step + 1), back: () => go(d.step - 1) };
+  },
+  settings() {
+    return [
+      h('button', { class: 'btn', type: 'button', onclick: () => openLibraryEditor('breaks') }, icon('edit'), 'Edit the brain breaks…'),
+      h('p', { class: 'muted', text: 'Choose the break with the menu on the card. The clicker’s forward and back buttons move through the steps; Space starts the timer.' }),
+    ];
+  },
+},
 };
 
 /* ============================================================
@@ -2472,7 +3411,7 @@ exit: {
 
 /* ---------- Timer settings (Visual timer + Countdown) ---------- */
 function openTimerSettings(w, ctx) {
-  const d = w.data, isA = w.type === 'analog';
+  const d = w.data, isA = w.type === 'analog', isC = w.type === 'digital';   // the Exam timer uses just Time and Sound
   const opt = clone(d);
   const tot = Math.round(d.duration / 1000);
   const sH = stepper(Math.floor(tot / 3600), 0, 23), sM = stepper(Math.floor((tot % 3600) / 60), 0, 59), sS = stepper(tot % 60, 0, 59);
@@ -2490,7 +3429,7 @@ function openTimerSettings(w, ctx) {
     secs.push(h('div', { class: 'form-sec' }, h('h3', { text: 'Disc scale' }),
       radios('scale', [['auto', 'Classic 60-minute face (switches to full disc for times over 1 hour)'], ['full', 'Full disc always equals the time set']], opt.scale, v => { opt.scale = v; }),
       h('div', { style: 'margin-top:10px' }, checkbox('Show the time in numbers under the disc', opt.showDigits, v => { opt.showDigits = v; }))));
-  } else {
+  } else if (isC) {
     const thrBox = h('div', { class: 'form-row', style: 'margin-top:12px;gap:18px' });
     const drawThr = () => {
       thrBox.textContent = '';
@@ -2516,14 +3455,14 @@ function openTimerSettings(w, ctx) {
       h('button', { class: 'btn small', type: 'button', onclick: () => chime() }, icon('bell'), 'Test chime'))));
   secs.push(err);
   openModal({
-    title: isA ? 'Visual timer' : 'Countdown', keep: true,
+    title: isA ? 'Visual timer' : isC ? 'Countdown' : 'Exam timer', keep: true,
     body: h('div', { class: 'form' }, secs),
     actions: [{ label: 'Cancel' }, {
       label: 'Apply', kind: 'primary', onClick: () => {
         const ms = (sH.get() * 3600 + sM.get() * 60 + sS.get()) * 1000;
         if (ms <= 0) { err.textContent = 'Set a time longer than 0 seconds.'; return false; }
-        if (!isA && opt.cue && opt.red >= opt.amber) { err.textContent = 'The red number must be smaller than the amber number.'; return false; }
-        (isA ? ['color', 'scale', 'showDigits', 'chime'] : ['cue', 'cueBy', 'amber', 'red', 'bar', 'chime']).forEach(k => { d[k] = opt[k]; });
+        if (isC && opt.cue && opt.red >= opt.amber) { err.textContent = 'The red number must be smaller than the amber number.'; return false; }
+        (isA ? ['color', 'scale', 'showDigits', 'chime'] : isC ? ['cue', 'cueBy', 'amber', 'red', 'bar', 'chime'] : ['chime']).forEach(k => { d[k] = opt[k]; });
         if (ms !== d.duration) tSet(d, ms);
         ctx.save(); ctx.rerender();
       },
@@ -2615,6 +3554,152 @@ function openStartersEditor() {
   load();
 }
 
+/* ---------- Starter tasks and Brain breaks editor (shared library) ---------- */
+const LIBS = {
+  starter: { title: 'Starter tasks', key: 'starterTasks', get: starterTasks, defaults: () => clone(CONFIG.starter.tasks), clean: cleanStarterTask,
+    blank: () => ({ name: 'New starter', text: '', hint: '' }), apps: ['starter'] },
+  breaks: { title: 'Brain breaks', key: 'brainBreaks', get: brainBreaks, defaults: () => clone(CONFIG.brainBreak.breaks), clean: cleanBreak,
+    blank: () => ({ name: 'New brain break', minutes: 2, steps: [] }), apps: ['brainbreak'] },
+};
+function openLibraryEditor(kind) {
+  const L = LIBS[kind];
+  let list = clone(L.get());
+  const box = h('div', { class: 'se-list' });
+  const input = (val, set, max = 60) => { const el = h('input', { class: 'input', type: 'text', maxlength: max }); el.value = val; el.addEventListener('input', () => set(el.value)); return el; };
+  const area = (val, set, rows) => { const el = h('textarea', { class: 'input', rows }); el.value = val; el.addEventListener('input', () => set(el.value)); return el; };
+  function draw() {
+    box.textContent = '';
+    list.forEach((it, i) => {
+      const name = field('Name', input(it.name, v => { it.name = v; }));
+      const parts = kind === 'starter'
+        ? [name, field('Instructions (start a line with "- " for a bullet point; type … for a blank)', area(it.text, v => { it.text = v; }, 3)),
+           field('Prompt for the box under the task (optional)', input(it.hint, v => { it.hint = v; }, 120))]
+        : [h('div', { class: 'se-row' }, name, field('Minutes', stepper(it.minutes, 0.5, 15, 0.5, v => { it.minutes = v; }).el)),
+           field('Steps — one per line', area(it.steps.join('\n'), v => { it.steps = v.split(/\r?\n/); }, 5))];
+      box.append(h('div', { class: 'se-item' },
+        h('div', { class: 'se-head' }, h('strong', { text: `${i + 1}.` }), h('span', { class: 'spacer' }),
+          ib('up', 'Move up', () => { if (i > 0) { [list[i - 1], list[i]] = [list[i], list[i - 1]]; draw(); } }),
+          ib('down', 'Move down', () => { if (i < list.length - 1) { [list[i + 1], list[i]] = [list[i], list[i + 1]]; draw(); } }),
+          list.length > 1 ? ib('trash', 'Delete', () => { list.splice(i, 1); draw(); }) : null),
+        parts));
+    });
+  }
+  draw();
+  const add = h('button', { class: 'btn small', type: 'button', onclick: () => { list.push(L.blank()); draw(); box.lastElementChild.scrollIntoView({ block: 'nearest' }); } }, icon('plus'), 'Add');
+  const reset = h('button', { class: 'btn small', type: 'button', onclick: async () => {
+    if (await confirmBox('Reset to the default list?', 'Your edits to this list will be lost.', 'Reset', true)) { list = L.defaults(); draw(); }
+  } }, icon('reset'), 'Reset to default');
+  openModal({
+    title: L.title, wide: true, keep: true,
+    body: h('div', { class: 'form' }, h('p', { class: 'muted', text: 'Edits apply to every board.' }), box, h('div', { class: 'form-row' }, add, reset)),
+    actions: [{ label: 'Cancel' }, { label: 'Save', kind: 'primary', onClick: () => {
+      store[L.key] = list.map(L.clean); save(); rerenderType(L.apps); toast(L.title + ' saved');
+    } }],
+  });
+}
+
+/* ---------- Seating plan export: picture, print / PDF, spreadsheet ---------- */
+function seatingPicture(c, P, room, flip) {
+  const W = 1800, pad = 56, headH = 140, frontH = 56, F = CONFIG.font, ink = '#1f2a2e';
+  const cv = document.createElement('canvas'), g = cv.getContext('2d');
+  const box = (x, y, w, h, r, fill, stroke) => { g.beginPath(); g.roundRect(x, y, w, h, r); g.fillStyle = fill; g.fill(); if (stroke) { g.lineWidth = 3; g.strokeStyle = stroke; g.stroke(); } };
+  const name = (t, cx, cy, maxW, maxH, start) => {   // biggest size (up to start) that fits in 2 lines
+    if (!t) return;
+    for (let size = start; size >= 16; size -= 2) {
+      g.font = `bold ${size}px ${F}`;
+      const lines = []; let cur = '';
+      for (const word of t.split(/\s+/)) { const tryL = cur ? cur + ' ' + word : word; if (g.measureText(tryL).width <= maxW || !cur) cur = tryL; else { lines.push(cur); cur = word; } }
+      lines.push(cur);
+      if ((lines.length <= 2 && lines.every(l => g.measureText(l).width <= maxW) && lines.length * size * 1.2 <= maxH) || size === 16) {
+        g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'middle';
+        lines.slice(0, 2).forEach((l, i) => g.fillText(l, cx, cy + (i - (Math.min(lines.length, 2) - 1) / 2) * size * 1.2, maxW));
+        return;
+      }
+    }
+  };
+  let planH, drawPlan;
+  if (room === 'std') {
+    const S = P.std, gap = 18, cw = (W - 2 * pad - gap * (S.cols - 1)) / S.cols, ch = Math.min(150, cw * 0.62);
+    planH = S.rows * ch + (S.rows - 1) * gap;
+    drawPlan = y0 => { for (let r = 0; r < S.rows; r++) for (let c = 0; c < S.cols; c++) {
+      const k = seatKey(r, c); if (S.gaps.includes(k)) continue;
+      const rr = flip ? S.rows - 1 - r : r, cc = flip ? S.cols - 1 - c : c, x = pad + cc * (cw + gap), y = y0 + rr * (ch + gap);
+      box(x, y, cw, ch, 14, '#fbfaf6', '#cfc8ba'); name(S.seats[k] || '', x + cw / 2, y + ch / 2, cw - 22, ch - 16, 40);
+    } };
+  } else {
+    const T = P.sp.tables, per = Math.min(P.sp.perRow, T.length), rows = Math.ceil(T.length / per), gap = 30;
+    const cw = (W - 2 * pad - gap * (per - 1)) / per, ch = Math.min(cw * 0.8, 560);
+    planH = rows * ch + (rows - 1) * gap;
+    drawPlan = y0 => T.forEach((t, i) => {
+      let r = Math.floor(i / per), col = i % per; if (flip) { r = rows - 1 - r; col = per - 1 - col; }
+      const cx = pad + col * (cw + gap) + cw / 2, cy = y0 + r * (ch + gap) + ch / 2;
+      const n = t.chairs, pw = cw * (n <= 4 ? 0.4 : n <= 6 ? 0.33 : 0.28), ph = 72, rx = cw / 2 - pw / 2 - 4, ry = ch / 2 - ph / 2 - 4;
+      const pts = t.seats.map((_, ci) => { const a = -Math.PI / 2 + 2 * Math.PI * ci / n + (flip ? Math.PI : 0); return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; });
+      g.beginPath(); g.arc(cx, cy, Math.max(30, Math.min(tableRadius(cx, cy, pts, pw, ph) - 14, cw * 0.18)), 0, Math.PI * 2);
+      g.fillStyle = '#e9e1d1'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#cbbfa8'; g.stroke();
+      g.font = `bold 40px ${F}`; g.fillStyle = '#4a5759'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(i + 1), cx, cy);
+      t.seats.forEach((s, ci) => { const [x, y] = pts[ci]; box(x - pw / 2, y - ph / 2, pw, ph, 30, '#fbfaf6', '#cfc8ba'); name(s, x, y, pw - 20, ph - 8, 28); });
+    });
+  }
+  const H = Math.round(headH + frontH + 28 + planH + pad);
+  cv.width = W; cv.height = H;
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.font = `bold 46px ${F}`; g.fillStyle = ink; g.fillText(`${c.name} — ${room === 'std' ? 'Standard classroom' : 'Special room'}`, pad, 76);
+  g.font = `26px ${F}`; g.fillStyle = '#5f6b70'; g.fillText('Seating plan · ' + new Date().toLocaleDateString(CONFIG.clock.dateStyle, { day: 'numeric', month: 'long', year: 'numeric' }), pad, 116);
+  const fy = flip ? H - pad - frontH : headH, py = flip ? headH : headH + frontH + 28;
+  box(pad, fy, W - 2 * pad, frontH, 12, '#ece8df');
+  g.font = `bold 26px ${F}`; g.fillStyle = '#4a5759'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(CONFIG.seatingPlan.frontLabel, W / 2, fy + frontH / 2);
+  drawPlan(py);
+  return cv;
+}
+function seatingCsv(c, P, room) {
+  const rows = [['Seating plan', c.name, room === 'std' ? 'Standard classroom' : 'Special room'], []];
+  if (room === 'std') {
+    rows.push(['Row (1 = front)', 'Column (from the left)', 'Name']);
+    for (let r = 0; r < P.std.rows; r++) for (let col = 0; col < P.std.cols; col++) { const k = seatKey(r, col); if (!P.std.gaps.includes(k)) rows.push([r + 1, col + 1, P.std.seats[k] || '']); }
+  } else {
+    rows.push(['Table', 'Chair', 'Name']);
+    P.sp.tables.forEach((t, ti) => t.seats.forEach((s, ci) => rows.push([ti + 1, ci + 1, s])));
+  }
+  const seated = new Set(seatList(P, room).map(r => getSeat(P, r)).filter(Boolean)), left = c.names.filter(n => !seated.has(n));
+  if (left.length) { rows.push([], ['Not seated']); left.forEach(n => rows.push(['', '', n])); }
+  const cell = v => (/[",\r\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v));
+  return '﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n');
+}
+function openSeatingExport(d) {
+  const c = store.classes.find(x => x.id === d.classId); if (!c) return;
+  const P = seatingFor(c.id), file = `seating-plan-${c.name}-${d.room === 'std' ? 'standard' : 'special'}`.replace(/[^\w-]+/g, '-');
+  const pic = () => seatingPicture(c, P, d.room, d.flip);
+  const choice = (ic, title, sub, fn) => h('button', { class: 'btn exp-btn', type: 'button', onclick: () => { fn(); m.close(); } }, icon(ic), h('span', {}, h('b', { text: title }), h('small', { text: sub })));
+  const m = openModal({
+    title: `Export seating plan — ${c.name}`,
+    body: h('div', { class: 'exp-list' },
+      choice('image', 'Picture (PNG)', 'To paste into slides, a document or a Notice', () => pic().toBlob(b => download(file + '.png', b))),
+      choice('print', 'Print or save as PDF', 'Opens the print window (choose “Save as PDF” there)', () => {
+        const win = window.open('', '_blank'); if (!win) { toast('Allow pop-up windows to print'); return; }
+        win.document.write(`<!doctype html><title>${file}</title><style>@page{size:A4 landscape;margin:10mm}html,body{margin:0}img{width:100%;display:block}</style><img src="${pic().toDataURL('image/png')}">`);
+        win.document.close(); win.focus(); setTimeout(() => win.print(), 300);
+      }),
+      choice('download', 'Spreadsheet (CSV)', 'Opens in Excel: row, column (or table, chair) and name', () => download(file + '.csv', seatingCsv(c, P, d.room), 'text/csv'))),
+    actions: [{ label: 'Close' }],
+  });
+}
+
+/* ---------- Name picker: who has been picked so far ---------- */
+function openPickedList(d) {
+  const c = store.classes.find(x => x.id === d.classId); if (!c) { toast('Choose a class first'); return; }
+  const away = absentFor(c.id), here = c.names.filter(n => !away.includes(n));
+  const done = d.picked.filter(n => here.includes(n)), notYet = d.repeats ? here : here.filter(n => !done.includes(n));
+  openModal({
+    title: `${c.name} — who has been picked`,
+    body: h('div', { class: 'left-cols' },
+      h('div', {}, h('h3', { text: `Not yet picked (${notYet.length})` }), h('ul', {}, notYet.map(n => h('li', { text: n })))),
+      h('div', {}, h('h3', { text: `Picked (${done.length})` }), done.length ? h('ol', {}, done.map(n => h('li', { text: n }))) : h('p', { class: 'muted', text: d.repeats ? 'Repeats are on, so picks are not tracked.' : 'No one yet.' }))),
+    actions: [{ label: 'Close', kind: 'primary' }],
+  });
+}
+
 /* ---------- Absent list (shared by Name picker and Group maker; resets each day) ---------- */
 function openAbsentModal(classId) {
   const c = store.classes.find(x => x.id === classId); if (!c) return;
@@ -2624,7 +3709,7 @@ function openAbsentModal(classId) {
     cb.addEventListener('change', () => { if (cb.checked) set.add(n); else set.delete(n); });
     return h('label', { class: 'check' }, cb, h('span', { text: n }));
   }));
-  const done = names => { setAbsent(classId, names); rerenderType(['picker', 'groups']); };
+  const done = names => { setAbsent(classId, names); rerenderType(['picker', 'groups', 'seating']); };
   openModal({
     title: `Who's absent? — ${c.name}`, wide: true, keep: true,
     body: h('div', {}, h('p', { class: 'muted', text: 'Tick students who are away today. They are left out of the Name picker and Group maker. The list clears itself tomorrow.' }), grid),
@@ -2842,8 +3927,8 @@ function openClassManager(selectId) {
   let sel = store.classes.some(c => c.id === selectId) ? selectId : (store.classes[0] ? store.classes[0].id : null);
   let dirty = false;
   const list = h('div', { class: 'cm-list' });
-  const nameIn = h('input', { class: 'input', type: 'text', maxlength: 60, placeholder: 'e.g. 3E2 Social Studies' });
-  const ta = h('textarea', { class: 'input cm-names', rows: 12, placeholder: 'One name per line, for example:\nAisha\nBen Tan\nChloe Lim' });
+  const nameIn = h('input', { class: 'input', type: 'text', maxlength: 60 });
+  const ta = h('textarea', { class: 'input cm-names', rows: 12, placeholder: 'One name per line' });
   const count = h('span', { class: 'muted' });
   const note = h('div', { class: 'note', role: 'status' });
   const delBtn = h('button', { class: 'btn danger small', type: 'button' }, icon('trash'), 'Delete');
@@ -2886,7 +3971,7 @@ function openClassManager(selectId) {
   delBtn.addEventListener('click', async () => {
     const c = store.classes.find(x => x.id === sel); if (!c) return;
     if (!(await confirmBox('Delete class?', `Delete “${c.name}” and its ${c.names.length} names? This can't be undone (unless you have a backup file).`, 'Delete class', true))) return;
-    store.classes = store.classes.filter(x => x !== c); clearAbsent(c.id);
+    store.classes = store.classes.filter(x => x !== c); clearAbsent(c.id); if (store.seating) delete store.seating[c.id];
     sel = store.classes[0] ? store.classes[0].id : null; dirty = false;
     save(); loadSel(); refreshPickers();
   });
@@ -2920,7 +4005,7 @@ function openClassManager(selectId) {
   });
   loadSel();
 }
-function refreshPickers() { rerenderType(['picker', 'groups']); }
+function refreshPickers() { rerenderType(['picker', 'groups', 'seating']); }
 
 /* ---------- Clicker and keyboard shortcuts window ---------- */
 function openHelp() {
@@ -2933,7 +4018,7 @@ function openHelp() {
     body: h('div', {},
       h('p', { text: 'The clicker controls the app with the dashed outline and the “clicker” tag. Click or tap an app to choose it.' }),
       h('table', { class: 'keys' },
-        row(K.next, 'Forward: next routine step · next vote question · tick the next objective · pick a name · next traffic light'),
+        row(K.next, 'Forward: next routine or brain-break step · next vote question · tick the next objective · pick a name · next traffic light · stopwatch lap'),
         row(K.back, 'Back: previous step or question · untick the last objective · previous traffic light'),
         row(K.playPause, 'Start or pause the timer (the chosen app’s, or the first timer on the board)'),
         row(K.pickName, 'Pick a name with the Name picker'),
@@ -2960,23 +4045,130 @@ function bringToFront(w, el) {
   const z = topZ(); if (w.z === z && board().widgets.filter(x => x.z === z).length === 1) return;
   w.z = z + 1; el.style.zIndex = w.z; save();
 }
-function place(el, w) { el.style.left = w.x + '%'; el.style.top = w.y + '%'; el.style.width = w.w + '%'; el.style.height = w.h + '%'; el.style.zIndex = w.z; }
+/* ---------- Grid layout: apps snap to a grid and never overlap.  Free layout: place apps anywhere ----------
+   Positions are stored as % of the board either way, so boards fit any screen. */
+const COLS = CONFIG.layout.columns, ROWS = CONFIG.layout.rows, GAP = CONFIG.layout.gap, CW = 100 / COLS, RH = 100 / ROWS;
+const isGrid = () => board().mode === 'grid';
+const toCells = w => {
+  const k = { w: clamp(Math.round(w.w / CW), 1, COLS), h: clamp(Math.round(w.h / RH), 1, ROWS) };
+  k.c = clamp(Math.round(w.x / CW), 0, COLS - k.w); k.r = clamp(Math.round(w.y / RH), 0, ROWS - k.h); return k;
+};
+const fromCells = (w, k) => { w.x = k.c * CW; w.y = k.r * RH; w.w = k.w * CW; w.h = k.h * RH; };
+const overlaps = (a, b) => a.c < b.c + b.w && b.c < a.c + a.w && a.r < b.r + b.h && b.r < a.r + a.h;
+const fits = (k, occ) => k.c >= 0 && k.r >= 0 && k.c + k.w <= COLS && k.r + k.h <= ROWS && !occ.some(o => overlaps(k, o));
+const cellsExcept = id => board().widgets.filter(x => x.id !== id).map(toCells);
+function minCells(type) {
+  const B = boardEl.getBoundingClientRect(), [mw, mh] = APPS[type].min || [160, 120];
+  return { w: clamp(Math.ceil((mw + GAP) / (B.width / COLS)), 1, COLS), h: clamp(Math.ceil((mh + GAP) / (B.height / ROWS)), 1, ROWS) };
+}
+/* the free spot for this size that is closest (on screen) to where you let go */
+function nearestFree(k, occ) {
+  const B = boardEl.getBoundingClientRect(), cw = B.width / COLS, rh = B.height / ROWS;
+  let best = null, bd = Infinity;
+  for (let r = 0; r + k.h <= ROWS; r++) for (let c = 0; c + k.w <= COLS; c++) {
+    const cand = { c, r, w: k.w, h: k.h }; if (!fits(cand, occ)) continue;
+    const dist = ((c - k.c) * cw) ** 2 + ((r - k.r) * rh) ** 2;
+    if (dist < bd) { bd = dist; best = cand; }
+  }
+  return best;
+}
+function placeRect(el, w) {
+  if (isGrid()) {
+    el.style.left = `calc(${w.x}% + ${GAP / 2}px)`; el.style.top = `calc(${w.y}% + ${GAP / 2}px)`;
+    el.style.width = `calc(${w.w}% - ${GAP}px)`; el.style.height = `calc(${w.h}% - ${GAP}px)`;
+  } else { el.style.left = w.x + '%'; el.style.top = w.y + '%'; el.style.width = w.w + '%'; el.style.height = w.h + '%'; }
+}
+function place(el, w) { placeRect(el, w); el.style.zIndex = w.z; }
+const ghost = h('div', { class: 'ghost', hidden: true, 'aria-hidden': 'true' });
+boardEl.append(ghost);
+function showGhost(k) { ghost.hidden = !k; if (k) { const r = {}; fromCells(r, k); placeRect(ghost, r); } }
+/* moving from grid to free: keep each app exactly where it appears (the gaps become part of the position) */
+function bakeGaps(widgets) {
+  const B = boardEl.getBoundingClientRect(), gx = GAP / 2 / B.width * 100, gy = GAP / 2 / B.height * 100;
+  widgets.forEach(w => { w.x += gx; w.y += gy; w.w -= 2 * gx; w.h -= 2 * gy; });
+}
+/* first free space from the top-left */
+function firstFree(k, occ) {
+  for (let r = 0; r + k.h <= ROWS; r++) for (let c = 0; c + k.w <= COLS; c++) { const cand = { c, r, w: k.w, h: k.h }; if (fits(cand, occ)) return cand; }
+  return null;
+}
+/* Tidy up: line everything up on the grid. First try: the app on top keeps its place and the ones
+   underneath move to the nearest free space. If that can't fit everything, pack the apps neatly
+   from the top-left (reading order, then biggest first). If still no room, make every app a little smaller. */
+function tidyPlan(widgets) {
+  const byZ = [...widgets].sort((a, b) => (b.z || 0) - (a.z || 0));
+  const byPos = [...widgets].sort((a, b) => (a.y - b.y) || (a.x - b.x));
+  const bySize = [...widgets].sort((a, b) => b.w * b.h - a.w * a.h);
+  const attempt = (order, scale, keepPlace) => {
+    const occ = [], plan = new Map();
+    for (const w of order) {
+      const k0 = toCells(w), mc = minCells(w.type);
+      const k = { w: clamp(Math.round(k0.w * scale), mc.w, COLS), h: clamp(Math.round(k0.h * scale), mc.h, ROWS), c: 0, r: 0 };
+      let spot;
+      if (keepPlace) { k.c = clamp(k0.c, 0, COLS - k.w); k.r = clamp(k0.r, 0, ROWS - k.h); spot = fits(k, occ) ? k : nearestFree(k, occ); }
+      else spot = firstFree(k, occ);
+      if (!spot) return null;
+      occ.push(spot); plan.set(w, spot);
+    }
+    return plan;
+  };
+  for (let scale = 1; scale > 0.3; scale -= 0.15) {
+    const plan = attempt(byZ, scale, true) || attempt(byPos, scale, false) || attempt(bySize, scale, false);
+    if (plan) return plan;
+  }
+  return null;
+}
+function relayout() {
+  boardEl.classList.toggle('grid', isGrid());
+  for (const [, rec] of instances) placeRect(rec.el, rec.w);
+  const m = board().mode;
+  document.querySelectorAll('[data-act="gridMode"],[data-act="freeMode"]').forEach(b => { const on = b.dataset.act === m + 'Mode'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+}
+const snapshot = () => ({ mode: board().mode, pos: board().widgets.map(w => [w, w.x, w.y, w.w, w.h]) });
+const restore = (b, snap) => { b.mode = snap.mode; snap.pos.forEach(([w, x, y, ww, hh]) => Object.assign(w, { x, y, w: ww, h: hh })); save(); if (board() === b) relayout(); };
+function tidyUp() {
+  const b = board(); if (!b.widgets.length) { toast('There are no apps to tidy'); return; }
+  const plan = tidyPlan(b.widgets);
+  if (!plan) { toast('Too many apps to fit without overlapping — remove one or make some smaller'); return; }
+  const snap = snapshot();
+  plan.forEach((k, w) => fromCells(w, k));
+  if (!isGrid()) bakeGaps(b.widgets);
+  save(); relayout();
+  toast('Apps tidied', { label: 'Undo', fn: () => restore(b, snap) });
+}
+function setLayout(mode) {
+  const b = board(); if (b.mode === mode) { relayout(); return; }
+  const snap = snapshot();
+  if (mode === 'free') { bakeGaps(b.widgets); b.mode = 'free'; save(); relayout(); toast('Free layout: place apps anywhere'); return; }
+  const plan = tidyPlan(b.widgets);
+  b.mode = 'grid';
+  if (plan) plan.forEach((k, w) => fromCells(w, k));
+  save(); relayout();
+  toast(plan ? 'Grid layout: apps snap into place and never overlap' : 'Grid layout is on, but some apps still overlap — remove one or make some smaller',
+    { label: 'Undo', fn: () => restore(b, snap) });
+}
 
 function mountWidget(w, animate) {
   const app = APPS[w.type];
   const el = h('section', { class: `w w-${w.type}` + (app.bare ? ' bare' : '') + (animate ? ' enter' : ''), 'data-id': w.id, 'aria-label': app.label });
-  const head = h('div', { class: 'w-head', title: 'Drag to move · double-click to spotlight' },
-    h('div', { class: 'w-title' }, icon(app.icon), h('span', { text: app.label }), h('span', { class: 'w-tag', text: 'clicker' })),
-    h('div', { class: 'w-actions' },
-      h('button', { type: 'button', class: 'spot-btn', title: 'Spotlight (fill the screen)', 'aria-label': 'Spotlight ' + app.label, onclick: () => toggleSpot(w.id) }, icon('expand')),
-      app.settings ? h('button', { type: 'button', title: 'Settings', 'aria-label': app.label + ' settings', onclick: () => openWidgetSettings(w) }, icon('gear')) : null,
-      h('button', { type: 'button', title: 'Remove', 'aria-label': 'Remove ' + app.label, onclick: () => removeWidget(w.id) }, icon('close'))));
+  // No name on the app. Two small handles sit on its top edge and show only when you point at,
+  // tap or type in the app: move (top-left) and ⤢ ⚙ ✕ (top-right). They never cover the app's content.
+  const head = h('div', { class: 'w-head', title: `${app.label} — drag to move · double-click to fill the screen` },
+    icon('grip'), h('span', { class: 'w-tag', text: 'clicker' }));
+  const actions = h('div', { class: 'w-actions' },
+    h('button', { type: 'button', class: 'spot-btn', title: 'Spotlight (fill the screen)', 'aria-label': 'Spotlight ' + app.label, onclick: () => toggleSpot(w.id) }, icon('expand')),
+    app.settings ? h('button', { type: 'button', title: 'Settings', 'aria-label': app.label + ' settings', onclick: () => openWidgetSettings(w) }, icon('gear')) : null,
+    h('button', { type: 'button', title: 'Remove', 'aria-label': 'Remove ' + app.label, onclick: () => removeWidget(w.id) }, icon('close')));
   const body = h('div', { class: 'w-body' });
   const grip = h('div', { class: 'w-resize', title: 'Drag to resize', 'aria-hidden': 'true' });
-  el.append(head, body, grip);
+  el.append(head, actions, body, grip);
   place(el, w);
   boardEl.append(el);
-  el.addEventListener('pointerdown', () => { bringToFront(w, el); if (canClick(instances.get(w.id))) setTarget(w.id); }, true);
+  el.addEventListener('pointerdown', e => {
+    bringToFront(w, el); if (canClick(instances.get(w.id))) setTarget(w.id);
+    el.dataset.wasSel = el.classList.contains('sel') ? '1' : '';
+    if (e.pointerType !== 'mouse') selectApp(el);   // touch: the tapped app shows its handles
+  }, true);
   head.addEventListener('dblclick', e => { if (!e.target.closest('button')) toggleSpot(w.id); });
   // touch screens don't send double-clicks, so count two quick taps on the top bar ourselves
   let tapAt = 0, downAt = null;
@@ -2994,6 +4186,8 @@ function mountWidget(w, animate) {
   instances.set(w.id, { el, inst, w, body, ctx });
   if (animate) setTimeout(() => el.classList.remove('enter'), 300);
 }
+function selectApp(el) { document.querySelectorAll('.w.sel').forEach(x => { if (x !== el) x.classList.remove('sel'); }); if (el) el.classList.add('sel'); }
+boardEl.addEventListener('pointerdown', e => { if (!e.target.closest('.w')) selectApp(null); });
 function unmountWidget(id) {
   const rec = instances.get(id); if (!rec) return;
   if (spotId === id) exitSpot();
@@ -3016,6 +4210,7 @@ function removeWidget(id) {
   const bid = b.id;
   toast(APPS[w.type].label + ' removed', { label: 'Undo', fn: () => {
     const target = store.boards.find(x => x.id === bid); if (!target) return;
+    if (target.mode === 'grid' && store.activeBoardId === bid) { const occ = cellsExcept(w.id), k = toCells(w); const spot = fits(k, occ) ? k : nearestFree(k, occ); if (spot) fromCells(w, spot); }
     target.widgets.splice(Math.min(i, target.widgets.length), 0, w); save();
     if (store.activeBoardId === bid) { mountWidget(w, true); updateEmpty(); markTarget(); }
   } });
@@ -3036,12 +4231,24 @@ function enableDrag(handle, el, w) {
     e.preventDefault();
     const B = boardEl.getBoundingClientRect(), R = el.getBoundingClientRect();
     const ox = e.clientX - R.left, oy = e.clientY - R.top;
+    const grid = isGrid(), occ = grid ? cellsExcept(w.id) : null, size = grid ? toCells(w) : null;
+    let land = null, moved = false;
     el.classList.add('dragging');
     trackPointer(handle, e, ev => {
-      w.x = clamp(ev.clientX - B.left - ox, 0, Math.max(0, B.width - R.width)) / B.width * 100;
-      w.y = clamp(ev.clientY - B.top - oy, 0, Math.max(0, B.height - R.height)) / B.height * 100;
-      el.style.left = w.x + '%'; el.style.top = w.y + '%';
-    }, () => { el.classList.remove('dragging'); save(); });
+      moved = true;
+      const x = clamp(ev.clientX - B.left - ox, 0, Math.max(0, B.width - R.width)) / B.width * 100;
+      const y = clamp(ev.clientY - B.top - oy, 0, Math.max(0, B.height - R.height)) / B.height * 100;
+      el.style.left = x + '%'; el.style.top = y + '%';
+      if (!grid) { w.x = x; w.y = y; return; }
+      // grid: the outline shows where it will land — here, or the nearest free space
+      boardEl.classList.add('moving');
+      const k = { w: size.w, h: size.h, c: clamp(Math.round(x / CW), 0, COLS - size.w), r: clamp(Math.round(y / RH), 0, ROWS - size.h) };
+      land = fits(k, occ) ? k : nearestFree(k, occ); showGhost(land);
+    }, () => {
+      el.classList.remove('dragging'); boardEl.classList.remove('moving'); showGhost(null);
+      if (grid) { if (land) fromCells(w, land); placeRect(el, w); }   // nowhere free: it goes back
+      if (moved) save();
+    });
   });
 }
 function enableResize(grip, el, w) {
@@ -3051,11 +4258,20 @@ function enableResize(grip, el, w) {
     e.preventDefault(); e.stopPropagation();
     const B = boardEl.getBoundingClientRect(), R = el.getBoundingClientRect();
     const sx = e.clientX, sy = e.clientY;
+    const grid = isGrid(), occ = grid ? cellsExcept(w.id) : null, mc = grid ? minCells(w.type) : null;
+    let last = grid ? toCells(w) : null;
     el.classList.add('dragging');
     trackPointer(grip, e, ev => {
-      w.w = clamp(R.width + ev.clientX - sx, Math.min(minW, B.width), B.right - R.left) / B.width * 100;
-      w.h = clamp(R.height + ev.clientY - sy, Math.min(minH, B.height), B.bottom - R.top) / B.height * 100;
-      el.style.width = w.w + '%'; el.style.height = w.h + '%';
+      const pw = R.width + ev.clientX - sx, ph = R.height + ev.clientY - sy;
+      if (!grid) {
+        w.w = clamp(pw, Math.min(minW, B.width), B.right - R.left) / B.width * 100;
+        w.h = clamp(ph, Math.min(minH, B.height), B.bottom - R.top) / B.height * 100;
+        el.style.width = w.w + '%'; el.style.height = w.h + '%'; return;
+      }
+      // grid: size snaps to whole cells and stops at the next app
+      const k = { c: last.c, r: last.r, w: clamp(Math.round((pw + GAP) / (B.width / COLS)), mc.w, COLS - last.c), h: clamp(Math.round((ph + GAP) / (B.height / ROWS)), mc.h, ROWS - last.r) };
+      const next = fits(k, occ) ? k : fits({ ...k, h: last.h }, occ) ? { ...k, h: last.h } : fits({ ...k, w: last.w }, occ) ? { ...k, w: last.w } : last;
+      if (next.w !== last.w || next.h !== last.h) { last = next; fromCells(w, last); placeRect(el, w); }
     }, () => { el.classList.remove('dragging'); save(); });
   });
 }
@@ -3074,12 +4290,26 @@ function findSpot(wpx, hpx, B) {
     }
   return best || { x: Math.max(0, (B.width - wpx) / 2), y: Math.max(0, (B.height - hpx) / 2) };
 }
+/* grid: first free space from the top-left; if none, try a slightly smaller size */
+function gridSpot(type, wpx, hpx, B) {
+  const occ = cellsExcept(null), mc = minCells(type);
+  let kw = clamp(Math.round((wpx + GAP) / (B.width / COLS)), mc.w, COLS), kh = clamp(Math.round((hpx + GAP) / (B.height / ROWS)), mc.h, ROWS);
+  for (;;) {
+    const k = firstFree({ w: kw, h: kh }, occ); if (k) return k;
+    if (kw <= mc.w && kh <= mc.h) return null;
+    kw = Math.max(mc.w, kw - 1); kh = Math.max(mc.h, kh - 1);
+  }
+}
 function addWidget(type) {
   exitSpot();
   const app = APPS[type]; const B = boardEl.getBoundingClientRect();
   const wpx = Math.min(app.size[0], B.width - 24), hpx = Math.min(app.size[1], B.height - 24);
-  const p = findSpot(wpx, hpx, B);
-  const w = { id: uid(), type, x: p.x / B.width * 100, y: p.y / B.height * 100, w: wpx / B.width * 100, h: hpx / B.height * 100, z: topZ() + 1, data: app.defaults() };
+  const w = { id: uid(), type, x: 0, y: 0, w: wpx / B.width * 100, h: hpx / B.height * 100, z: topZ() + 1, data: app.defaults() };
+  if (isGrid()) {
+    const k = gridSpot(type, wpx, hpx, B);
+    if (k) fromCells(w, k);
+    else { const c = toCells(w); fromCells(w, { ...c, c: Math.floor((COLS - c.w) / 2), r: Math.floor((ROWS - c.h) / 2) }); toast('The board is full, so this app is on top of others', { label: 'Make room', fn: () => tidyUp() }); }
+  } else { const p = findSpot(wpx, hpx, B); w.x = p.x / B.width * 100; w.y = p.y / B.height * 100; }
   board().widgets.push(w); save(); mountWidget(w, true); updateEmpty(); markTarget();
 }
 
@@ -3092,7 +4322,9 @@ function renderBoard() {
   const bg = BGS[b.bg] || BGS[DEFAULT_BG];
   document.body.style.setProperty('--board', bg.c);
   boardEl.classList.toggle('dark', !!bg.dark);
+  boardEl.classList.toggle('grid', isGrid()); boardEl.style.setProperty('--cols', COLS); boardEl.style.setProperty('--rows', ROWS);
   [...b.widgets].forEach(w => mountWidget(w, false));
+  relayout();
   updateEmpty(); markTarget();
   renderBoardSelect(); renderBgMenu();
   document.title = b.name + ' · ' + CONFIG.appName;
@@ -3238,7 +4470,7 @@ document.addEventListener('click', e => {
 const KEPT_TEXT = 'Your own text stays: notices, greetings, objectives, vote questions, exit ticket prompts, routine questions and steps, group names and the Frayer term.';
 const ACTIONS = {
   async newBoard() {
-    const name = await promptBox('New board', 'Board name (e.g. 3E2 SS, Form period, Assembly)'); if (!name) return;
+    const name = await promptBox('New board', 'Board name'); if (!name) return;
     const b = newBoard(name); store.boards.push(b); switchBoard(b.id);
   },
   async renameBoard() {
@@ -3314,6 +4546,9 @@ const ACTIONS = {
       } });
     });
   },
+  gridMode() { setLayout('grid'); },
+  freeMode() { setLayout('free'); },
+  tidy() { tidyUp(); },
   classes() { openClassManager(); },
   export() {
     store.prefs.lastBackup = new Date().toISOString();
@@ -3354,8 +4589,8 @@ document.addEventListener('fullscreenchange', () => { $('#fsBtn').textContent = 
 
 /* ---------- App bar (two tabs) ---------- */
 const DOCK = {
-  tools: ['analog', 'digital', 'clock', 'notice', 'agenda', 'bubble', 'traffic', 'picker', 'groups', 'points'],
-  routines: ['routine', 'talk', 'frayer', 'vote', 'confidence', 'exit'],
+  tools: ['analog', 'digital', 'stopwatch', 'exam', 'clock', 'notice', 'agenda', 'bubble', 'traffic', 'picker', 'groups', 'seating', 'points'],
+  routines: ['starter', 'routine', 'talk', 'frayer', 'vote', 'confidence', 'exit', 'brainbreak'],
 };
 function renderDock() {
   const tab = store.prefs.dockTab;
