@@ -56,7 +56,7 @@ html,body{height:100%;margin:0}
 body{
   font-family:var(--font); font-size:var(--base); line-height:1.45; color:var(--ink);
   background:var(--board);
-  display:grid; grid-template-rows:auto 1fr auto; grid-template-columns:minmax(0,1fr); overflow:hidden;
+  display:grid; grid-template-rows:var(--row-top,auto) 1fr var(--row-bot,auto); grid-template-columns:minmax(0,1fr); overflow:hidden;
   -webkit-font-smoothing:antialiased;
 }
 button,input,select,textarea{font:inherit;color:inherit}
@@ -169,6 +169,7 @@ select.input{appearance:auto}
 .empty-hint strong{color:var(--ink-2);display:block;font-size:24px;margin-bottom:6px}
 .board.dark .empty-hint,.board.dark .empty-hint strong{color:#c9d2d4}
 .dock{grid-row:3;display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 8px 10px;background:#fff;border-top:1px solid var(--line);position:relative;z-index:50}
+.dock>*,.topbar>*{transition:opacity .15s}
 .dock-tabs{display:flex;flex-direction:column;gap:4px;margin-right:4px;padding-right:8px;border-right:1px solid var(--line)}
 .dock-tabs button{border:1px solid transparent;background:none;border-radius:10px;padding:6px 12px;font-size:16px;color:var(--ink-2);text-align:left;white-space:nowrap}
 .dock-tabs button:hover{background:#f4f1ea}
@@ -177,11 +178,57 @@ select.input{appearance:auto}
 .dock-apps button{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:62px;padding:8px 3px 6px;border:1px solid transparent;border-radius:14px;background:none;font-size:16px;color:var(--ink-2)}
 .dock-apps button:hover{background:#f4f1ea;border-color:var(--line);color:var(--ink)}
 .dock-apps .icon{width:30px;height:30px;color:var(--accent)}
+/* pin (app bar and top bar): a faded icon in the top-right corner; full colour when you point at it, teal when pinned */
+.dock-pin,.bar-pin{width:28px;height:28px;padding:0;border:0;border-radius:8px;background:none;display:grid;place-items:center;color:var(--ink-3);opacity:.45;transition:opacity .15s}
+.dock-pin{position:absolute;top:4px;right:6px}
+.bar-pin{align-self:flex-start;margin:-4px -8px 0 2px}
+.bar-pin[hidden]{display:none}
+:is(.dock-pin,.bar-pin):hover,:is(.dock-pin,.bar-pin):focus-visible{opacity:1;background:#f4f1ea;color:var(--ink)}
+:is(.dock-pin,.bar-pin) .icon{width:17px;height:17px;transform:rotate(40deg);transition:transform .15s}
+:is(.dock-pin,.bar-pin).on{color:var(--accent);opacity:.8}
+:is(.dock-pin,.bar-pin).on .icon{transform:none}
+/* The app bar tucks away as a thin strip along the bottom edge (PERSONALISE: showOnPoint.appBar).
+   Point at the strip (mouse) or tap it (touch) and it slides up; it waits a moment before hiding again.
+   It stays open while the board is empty, or when pinned. */
+body{--strip:16px}
+body.bar-auto:not(.dock-pinned){--row-bot:var(--strip)}
+body.bar-auto:not(.dock-pinned) .dock{position:fixed;left:0;right:0;bottom:0;transform:translateY(calc(100% - var(--strip)));transition:transform .2s ease .4s;box-shadow:0 -8px 28px rgba(31,42,46,.16)}
+body.bar-auto:not(.dock-pinned) .dock::before{content:"";position:absolute;top:6px;left:50%;width:72px;height:4px;margin-left:-36px;border-radius:9px;background:#aaa294}
+body.bar-auto .dock.open,body.bar-auto.board-empty .dock,body.bar-auto .dock:focus-within{transform:none;transition-delay:0s}
+body.bar-auto.board-empty .dock{box-shadow:none}
+body.bar-auto:not(.dock-pinned) .dock::before{transition:opacity .15s}
+body.bar-auto .dock:is(.open,:focus-within)::before,body.bar-auto.board-empty .dock::before{opacity:0}
+@media (hover:hover){ body.bar-auto .dock:hover::before{opacity:0} }
+@media (hover:hover){
+  body.bar-auto .dock:hover{transform:none;transition-delay:.05s}
+  body.bar-auto:not(.dock-pinned):not(.board-empty) .dock:not(.open):not(:focus-within):not(:hover)>*{pointer-events:none;opacity:0}
+}
+@media (hover:none){
+  body.bar-auto:not(.dock-pinned):not(.board-empty) .dock:not(.open):not(:focus-within)>*{pointer-events:none;opacity:0}
+}
 /* hide header */
 .pull-tab{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:70;display:none;align-items:center;gap:8px;padding:4px 14px 6px;border:1px solid var(--line-2);border-top:0;border-radius:0 0 12px 12px;background:#fff;font-size:16px;opacity:.6;transition:opacity .2s}
 .pull-tab:hover,.pull-tab:focus-visible{opacity:1}
 body.no-header .topbar{display:none}
 body.no-header .pull-tab{display:inline-flex}
+/* The top bar tucks away too (PERSONALISE: showOnPoint.header): point at (or tap) the strip along the top edge.
+   It stays down while a menu is open, while you use it, while the board is empty, or when pinned. */
+body.head-auto [data-act="hideHeader"],body.head-auto .pull-tab{display:none!important}
+body.head-auto.no-header .topbar{display:flex}
+body.head-auto:not(.head-pinned){--row-top:var(--strip)}
+body.head-auto:not(.head-pinned) .topbar{position:fixed;left:0;right:0;top:0;transform:translateY(calc(-100% + var(--strip)));transition:transform .2s ease .4s;box-shadow:0 8px 28px rgba(31,42,46,.16)}
+body.head-auto:not(.head-pinned) .topbar::after{content:"";position:absolute;bottom:6px;left:50%;width:72px;height:4px;margin-left:-36px;border-radius:9px;background:#aaa294;transition:opacity .15s}
+body.head-auto .topbar:is(.open,:focus-within,:has(.menu.open)),body.head-auto.board-empty .topbar{transform:none;transition-delay:0s}
+body.head-auto .topbar:is(.open,:focus-within,:has(.menu.open))::after,body.head-auto.board-empty .topbar::after{opacity:0}
+body.head-auto.board-empty .topbar{box-shadow:none}
+@media (hover:hover){
+  body.head-auto .topbar:hover{transform:none;transition-delay:.05s}
+  body.head-auto .topbar:hover::after{opacity:0}
+  body.head-auto:not(.head-pinned):not(.board-empty) .topbar:not(.open):not(:focus-within):not(:has(.menu.open)):not(:hover)>*{pointer-events:none;opacity:0}
+}
+@media (hover:none){
+  body.head-auto:not(.head-pinned):not(.board-empty) .topbar:not(.open):not(:focus-within):not(:has(.menu.open))>*{pointer-events:none;opacity:0}
+}
 /* focus mode hides all editing chrome */
 body.focus{grid-template-rows:0 1fr 0}
 body.focus .topbar,body.focus .dock{display:none}
@@ -198,7 +245,7 @@ body.focus #exitFocus,body.spotting #exitSpot{display:inline-flex}
 /* grid mode: apps snap to a grid; an outline shows where a dragged app will land */
 .ghost{position:absolute;z-index:8000;border:3px dashed var(--accent);background:rgba(47,111,115,.12);border-radius:var(--radius);pointer-events:none;transition:left .12s,top .12s,width .12s,height .12s}
 .board.dark .ghost{border-color:var(--accent-bright);background:rgba(127,196,199,.14)}
-.board.grid.moving{background-image:linear-gradient(to right,rgba(127,196,199,.18) 1px,transparent 1px),linear-gradient(to bottom,rgba(127,196,199,.18) 1px,transparent 1px);background-size:calc(100% / var(--cols)) calc(100% / var(--rows))}
+.board.grid.moving{background-image:linear-gradient(to right,rgba(127,196,199,.18) 1px,transparent 1px),linear-gradient(to bottom,rgba(127,196,199,.18) 1px,transparent 1px);background-size:calc((100% - var(--gap,0px)) / var(--cols)) calc((100% - var(--gap,0px)) / var(--rows));background-position:calc(var(--gap,0px) / 2) calc(var(--gap,0px) / 2)}
 .board.grid .w:not(.dragging){transition:background-color 1.6s ease,box-shadow .2s,left .15s,top .15s,width .15s,height .15s}
 /* blank screen (clicker "B" button) */
 .blank-screen{position:fixed;inset:0;z-index:300;background:#14191b;display:grid;place-items:end center;padding:24px;cursor:pointer}
@@ -235,6 +282,31 @@ body.focus #exitFocus,body.spotting #exitSpot{display:inline-flex}
 .board.dark .w.bare .w-resize::before{filter:invert(1)}
 .w-resize{opacity:0;pointer-events:none;transition:opacity .15s}
 .w:hover>.w-resize,.w.sel>.w-resize,.w:focus-within>.w-resize,.w.dragging>.w-resize{opacity:1;pointer-events:auto}
+/* The row of buttons along the bottom of an app (PERSONALISE: showOnPoint.appButtons) floats as a pill
+   centred on the app's bottom edge, half in and half out, and shows only when you point at the app,
+   tap it or type in it — so the content keeps the whole card the rest of the time. The board keeps a
+   thin band free along its bottom so the pills of the bottom row fit below them, never over their
+   buttons. (An app pushed right against the bottom edge in free layout shows its pill just inside.) */
+body{--foot-room:10px}   /* the 12 px gap under the bottom row + this = room for a pill below it */
+body.foot-auto .board{margin-bottom:var(--foot-room);overflow:clip;overflow-clip-margin:30px}
+body.foot-auto :is(.ag-foot,.tk-foot,.fr-foot,.ex-foot,.vt-foot,.gm-foot,.pt-foot,.sp-foot,.tc){position:absolute;left:28px;right:28px;bottom:-22px;width:fit-content;max-width:calc(100% - 56px);margin:0 auto;z-index:7;
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;min-height:44px;padding:4px 10px;border:1px solid var(--line-2);border-radius:22px;
+  background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(31,42,46,.2),0 8px 18px rgba(31,42,46,.12);opacity:0;pointer-events:none;transition:opacity .15s}
+body.foot-auto :is(.ag-foot,.tk-foot,.fr-foot,.ex-foot,.vt-foot,.gm-foot,.pt-foot,.sp-foot,.tc) .spacer{flex:none;width:2px}
+body.foot-auto .tc .btn.go{min-width:0}
+@media (hover:hover) and (pointer:fine){   /* mouse: slightly smaller buttons in the pill */
+  body.foot-auto :is(.ag-foot,.tk-foot,.fr-foot,.ex-foot,.vt-foot,.gm-foot,.pt-foot,.sp-foot,.tc) .btn{min-height:38px;padding:6px 12px}
+  body.foot-auto :is(.ag-foot,.tk-foot,.fr-foot,.ex-foot,.vt-foot,.gm-foot,.pt-foot,.sp-foot,.tc) .ib{width:38px;height:38px}
+}
+@container (max-width: 540px){ body.foot-auto .tc .full{display:none} body.foot-auto .tc .short{display:inline} }
+/* narrower apps: the pills drop their least useful words so they stay on one line */
+@container (max-width: 640px){ body.foot-auto .pt-foot>.muted,body.foot-auto .gm-foot>:first-child,body.foot-auto .gm-foot .switch>span:last-child{display:none}
+  body.foot-auto .gm-foot .switch::after{content:"A/B pairs"} }
+@container (max-width: 460px){ body.foot-auto .ag-foot .ag-count{display:none} }
+body.foot-auto .w:is(:hover,.sel,:focus-within) :is(.ag-foot,.tk-foot,.fr-foot,.ex-foot,.vt-foot,.gm-foot,.pt-foot,.sp-foot,.tc){opacity:1;pointer-events:auto}
+body.foot-auto .w.at-bottom:not(.spot) :is(.ag-foot,.tk-foot,.fr-foot,.ex-foot,.vt-foot,.gm-foot,.pt-foot,.sp-foot,.tc){bottom:8px}
+/* grid mode: the app you point at comes to the front, so its pill and handles are not hidden by its neighbours */
+body.foot-auto .board.grid .w:is(:hover,.sel,:focus-within){z-index:7000!important}
 /* scroll bars inside apps: easy to see and grab (they never run under the resize handle) */
 .w-body ::-webkit-scrollbar{width:14px;height:14px}
 .w-body ::-webkit-scrollbar-thumb{background:#c9c2b5;border-radius:99px;border:3px solid transparent;background-clip:padding-box}
@@ -649,6 +721,10 @@ body.focus .stt-box:empty{display:none}
   .w:not(.bare)>.w-body{padding-top:28px}
   .ag-tools{display:flex;position:static;background:none;padding-left:0}
   .rt-dots button{width:22px;height:22px}
+  body.bar-auto:not(.dock-pinned) .dock::before{top:9px;width:88px;margin-left:-44px;height:6px}
+  body.head-auto:not(.head-pinned) .topbar::after{bottom:9px;width:88px;margin-left:-44px;height:6px}
+  body{--strip:24px;--foot-room:16px}
+  body.foot-auto :is(.ag-foot,.tk-foot,.fr-foot,.ex-foot,.vt-foot,.gm-foot,.pt-foot,.sp-foot,.tc){bottom:-26px;min-height:52px}
 }
 
 /* ============================================================
@@ -706,8 +782,9 @@ kbd{display:inline-block;min-width:1.8em;text-align:center;font-family:var(--fon
 /* ---------- 1.10 Messages, motion, small screens ---------- */
 .toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,20px);background:#1f2a2e;color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 30px rgba(0,0,0,.35);border-radius:14px;padding:12px 16px 12px 20px;display:flex;align-items:center;gap:14px;font-size:17px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:120;max-width:calc(100vw - 32px)}
 .toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
-.toast button{border:1px solid rgba(255,255,255,.4);background:none;color:#fff;border-radius:9px;padding:6px 12px;font-size:16px}
-body.focus .toast{bottom:24px}
+.toast button{border:1px solid rgba(255,255,255,.4);background:none;color:#fff;border-radius:9px;padding:6px 12px;font-size:16px;white-space:nowrap}
+body.focus .toast,body.bar-auto:not(.dock-pinned):not(.board-empty) .toast{bottom:30px}
+body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,:focus-within)~.toast{bottom:110px}   /* above the bar while it is up */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -715,6 +792,43 @@ body.focus .toast{bottom:24px}
   .cm{grid-template-columns:1fr}
   .cm-list{border-right:0;border-bottom:1px solid var(--line);padding:0 0 10px;max-height:160px}
   .brand span{display:none}
+}
+
+/* ============================================================
+   1.11 Calmer look — one spacing step, three corner sizes
+   ------------------------------------------------------------
+   Spacing: everything inside a card sits 16 px from its edges (top, sides, bottom);
+            apps are 12 px apart and 12 px from the screen edge (CONFIG.layout.gap).
+   Corners: cards 12 px · inner panels and controls 8 px (≈ card corner minus the gap, so
+            nested corners line up) · full pills only for things that float (handles,
+            button pills, switches).
+   Panels inside apps: a soft tint, no outline (fewer boxes inside boxes).
+   ============================================================ */
+:root{--radius:12px;--r-in:8px;--panel:#f4f2ec;--shadow:0 1px 2px rgba(31,42,46,.07),0 4px 14px rgba(31,42,46,.08)}
+.board.dark .w:not(.bare){box-shadow:0 1px 2px rgba(0,0,0,.3),0 6px 16px rgba(0,0,0,.28)}
+.w:not(.bare)>.w-body{padding-top:16px}
+.w-head,.w-actions{top:-16px}   /* handles straddle the top edge: half out, half in (16 px = the inside spacing) */
+.nt,.ag,.pk,.gm,.pt,.rt,.tk,.fr,.vt,.cf,.ex,.sp,.xm,.stt,.bk{padding:0 16px 16px}
+.ck{padding:0 16px 16px}
+.sw-laps{margin:0 16px 16px}
+.pk-stage,.pt-card,.gm-card,.ex-row,.ex-col,.fr-q,.tk .st-cat,.rt-st{background:var(--panel);border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;border-radius:var(--r-in)}
+.pk-stage,.ex-row,.fr-q,.tk .st-cat,.rt-st{border-top-color:transparent}
+.pt-grid,.gm-grid{gap:12px}
+.btn,.ib,.input,.seg,.board-pick select,.tb-btn,.dock-tabs button,.rt-focus,.rt-timer,.vt-track,.vt-fill,.bk-steps li,.sp-strip,.gm-empty,.cm-item,.float-btn{border-radius:var(--r-in)}
+.btn.small,.menu button,.nt-b,.toast button,.sp-seat,.sp-add,.sp-front,.swatch-grid i{border-radius:6px}
+.dock-apps button,.menu,.toast{border-radius:10px}
+.modal{border-radius:14px}
+.stt-box{border-radius:0 var(--r-in) var(--r-in) 0}
+/* Controls you read up close (top bar, app bar, menus, messages) use the narrower controls font
+   (PERSONALISE: controlsFont — Calibri); the apps keep the wide, very legible main font for the back row.
+   Calibri looks a size smaller than Verdana at the same pixel size, so these are 1 px larger. */
+.topbar,.dock,.pull-tab,.float-btn,.toast{font-family:var(--font-ui)}
+.tb-btn,.save-status,.dock-tabs button,.dock-apps button,.float-btn,.pull-tab,.toast,.toast button,.menu-note,.menu .seg button{font-size:17px}
+.menu button,.menu-row,.board-pick select{font-size:18px}
+.brand{font-size:19px}
+@media (hover: none), (pointer: coarse){
+  .w:not(.bare)>.w-body{padding-top:22px}
+  .w-head,.w-actions{top:-20px}
 }
 </style>
 </head>
@@ -762,10 +876,11 @@ body.focus .toast{bottom:24px}
   <button class="tb-btn" data-act="hideHeader" title="Hide this top bar">Hide header</button>
   <button class="tb-btn" data-act="focus" id="focusBtn" title="Hide toolbars for teaching (F)">Focus mode</button>
   <button class="tb-btn" data-act="fullscreen" id="fsBtn">Full screen</button>
+  <button class="bar-pin" id="headPin" type="button" hidden></button>
 </header>
 
 <main class="board" id="board" aria-label="Board">
-  <div class="empty-hint" id="emptyHint"><div><strong>This board is empty</strong>Add apps from the bar below — classroom tools or learning routines.<br>Point at an app (or tap it) to show its bar: drag the bar to move the app, or the round corner handle to resize it.</div></div>
+  <div class="empty-hint" id="emptyHint"><div><strong>This board is empty</strong>Add apps from the bar below — classroom tools or learning routines.<br>Point at an app (or tap it) to show its handles and buttons: drag the top-left handle to move it, or the bottom-right corner to resize it.</div></div>
 </main>
 
 <nav class="dock" id="dock" aria-label="Add an app">
@@ -804,7 +919,8 @@ const CONFIG = {
 
   /* ---------- Whole app ---------- */
   appName: 'Class Screen',
-  font: 'Verdana, Tahoma, "Segoe UI", "DejaVu Sans", Arial, sans-serif',
+  font: 'Verdana, Tahoma, "Segoe UI", "DejaVu Sans", Arial, sans-serif',   // the apps (read from the back of the room)
+  controlsFont: 'Calibri, Carlito, "Segoe UI", Arial, sans-serif',          // top bar, app bar, menus (read up close): narrower, less air
   colours: {
     accent: '#2f6f73',        // buttons, ticks, highlights
     accentSoft: '#e2eeee',    // pale version of the accent
@@ -828,11 +944,16 @@ const CONFIG = {
   backupReminderDays: 14,               // a dot appears on Backup after this many days without one
   chime: { notes: [659.25, 830.61, 987.77], playTimes: 2, volume: 0.16 },  // soft E-major chime
   timerPresets: [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90],                  // minutes, in the Set time window
+  showOnPoint: {             // hidden until you point at them (or tap, on a touch panel), so apps get more room
+    header: true,             // the top bar (board name, menus, class lists…) (false = always showing)
+    appBar: true,             // the app bar at the bottom of the screen (false = always showing)
+    appButtons: true,         // the row of buttons along the bottom of each app (false = always showing)
+  },
   layout: {
     newBoards: 'grid',   // 'grid' = apps snap into place and never overlap; 'free' = place apps anywhere
     columns: 24,         // grid size across the board
     rows: 16,            // grid size down the board
-    gap: 10,             // space between apps in grid mode (pixels)
+    gap: 12,             // space between apps in grid mode, and between apps and the screen edge (pixels)
   },
 
   /* ---------- Clicker and keyboard (key names as the browser reports them) ----------
@@ -944,6 +1065,8 @@ const CONFIG = {
     allowRepeats: false,
     style: 'card',              // 'card' = the name appears in a box; 'wheel' = a spinning wheel of names
     suspenseSeconds: 2,         // 0, 2 or 4: names cycle past (card) or the wheel spins before stopping
+    tickSound: true,            // soft tick as names roll past or the wheel spins (each picker can turn it off in ⚙)
+    tickVolume: 0.07,           // 0.02 = very quiet … 0.15 = clearly audible
     wheelColours: ['#cfe3e4', '#f6dcc9', '#dce8c9', '#e5dcf1', '#f6e8b6', '#d0e2f4', '#f3d4dd', '#d8eadc'],
   },
 
@@ -1202,12 +1325,16 @@ function applyConfigToPage() {
   const r = document.documentElement.style, c = CONFIG.colours, cd = CONFIG.countdown.cueColours, L = CONFIG.trafficLight.lampColours;
   const set = (k, v) => { if (v) r.setProperty(k, v); };
   set('--font', CONFIG.font);
+  set('--font-ui', CONFIG.controlsFont || CONFIG.font);
   set('--accent', c.accent); set('--accent-soft', c.accentSoft); set('--accent-bright', c.accentBright);
   set('--ink', c.text); set('--ink-2', c.textSoft); set('--ink-3', c.textMuted); set('--danger', c.danger);
   for (const k of ['green', 'amber', 'red']) { set(`--cue-${k}-tint`, cd[k].tint); set(`--cue-${k}-text`, cd[k].text); set(`--cue-${k}-bar`, cd[k].bar); }
   set('--lamp-red', L.red); set('--lamp-amber', L.amber); set('--lamp-green', L.green);
   set('--f5-start', CONFIG.fistToFive.startColour); set('--f5-end', CONFIG.fistToFive.endColour);
   $('#brandName').textContent = CONFIG.appName;
+  document.body.classList.toggle('head-auto', !!CONFIG.showOnPoint.header);
+  document.body.classList.toggle('bar-auto', !!CONFIG.showOnPoint.appBar);
+  document.body.classList.toggle('foot-auto', !!CONFIG.showOnPoint.appButtons);
 }
 
 /* Icons (simple line drawings) */
@@ -1264,6 +1391,7 @@ const ICONS = {
   grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
   seating: '<path d="M6 3.5h12"/><rect x="3.5" y="7.5" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="7.5" width="4.5" height="4.5" rx="1"/><rect x="16" y="7.5" width="4.5" height="4.5" rx="1"/><rect x="3.5" y="15" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="15" width="4.5" height="4.5" rx="1"/><rect x="16" y="15" width="4.5" height="4.5" rx="1"/>',
   print: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>',
+  pin: '<path d="M9 3.5h6l-1 6 3.5 3.5H6.5L10 9.5z"/><path d="M12 13v7.5"/>',
   link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.3 1.3"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.3-1.3"/>',
   external: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/>',
   image: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17.5l5-4.5 4 3.5 3-2.5 4.5 3.5"/>',
@@ -1356,6 +1484,17 @@ function chime() {
   for (let rep = 0; rep < C.playTimes; rep++) C.notes.forEach((f, i) => bell(ctx, f, t0 + rep * 1.6 + i * 0.32, C.volume));
 }
 document.addEventListener('pointerdown', () => { audio(); }, { once: true });
+document.addEventListener('keydown', () => { audio(); }, { once: true });
+/* soft "tock" for the Name picker (at most one every 30 ms, so a fast spin purrs rather than buzzes) */
+let lastTick = 0;
+function tick() {
+  const ctx = audio(), now = performance.now(); if (!ctx || ctx.state !== 'running' || now - lastTick < 30) return;
+  lastTick = now;
+  const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(), v = clamp(numOr(CONFIG.namePicker.tickVolume, 0.07), 0.005, 0.3);
+  o.type = 'triangle'; o.frequency.setValueAtTime(1500, t); o.frequency.exponentialRampToValueAtTime(650, t + 0.04);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.07);
+}
 
 /* Rich-text safety filter for Notice, Frayer and Exit ticket boxes */
 const KEEP_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'UL', 'OL', 'LI', 'BR', 'DIV', 'P', 'SPAN', 'FONT', 'A', 'IMG']);
@@ -1543,7 +1682,7 @@ function normalize(s) {
   out.activeBoardId = out.boards.some(b => b.id === s.activeBoardId) ? s.activeBoardId : out.boards[0].id;
   const P = s.prefs && typeof s.prefs === 'object' ? s.prefs : {};
   out.prefs = {
-    dockTab: P.dockTab === 'routines' ? 'routines' : 'tools', headerHidden: !!P.headerHidden,
+    dockTab: P.dockTab === 'routines' ? 'routines' : 'tools', headerHidden: !!P.headerHidden, dockPinned: !!P.dockPinned, headPinned: !!P.headPinned, dockTipShown: !!P.dockTipShown,
     lastBackup: !isNaN(Date.parse(P.lastBackup)) ? new Date(P.lastBackup).toISOString() : null,
   };
   if (s.starters && typeof s.starters === 'object') {
@@ -1814,11 +1953,15 @@ function fitGrid(grid, n, target = 1.25) {
   let best = 1, bestScore = Infinity;
   for (let c = 1; c <= n; c++) {
     const rows = Math.ceil(n / c); const ratio = (r.width / c) / (r.height / rows);
-    const score = Math.abs(Math.log(ratio / target)) + (c * rows - n) * 0.12;
+    const score = Math.abs(Math.log(ratio / target)) + (c * rows - n) * 0.5;   // empty cells cost more: 4 groups = 2 × 2
     if (score < bestScore) { bestScore = score; best = c; }
   }
-  grid.style.gridTemplateColumns = `repeat(${best}, minmax(0,1fr))`;
-  grid.style.gridTemplateRows = `repeat(${Math.ceil(n / best)}, minmax(0,1fr))`;
+  // every card the same size; a part-filled last row is centred (each card spans two half-columns)
+  const rows = Math.ceil(n / best), last = n - (rows - 1) * best, cards = [...grid.children];
+  grid.style.gridTemplateColumns = `repeat(${best * 2}, minmax(0,1fr))`;
+  grid.style.gridTemplateRows = `repeat(${rows}, minmax(0,1fr))`;
+  cards.forEach(c => { c.style.gridColumn = 'span 2'; });
+  if (last < best && cards[(rows - 1) * best]) cards[(rows - 1) * best].style.gridColumn = `${best - last + 1} / span 2`;
 }
 /* one-line editable text: Enter finishes editing */
 function oneLine(el, onInput) {
@@ -2090,7 +2233,7 @@ digital: {
 
 /* ---------- Stopwatch (with laps) ---------- */
 stopwatch: {
-  label: 'Stopwatch', icon: 'stopwatch', size: [420, 400], min: [260, 240],
+  label: 'Stopwatch', icon: 'stopwatch', size: [480, 320], min: [260, 240],
   defaults: () => ({ running: false, startAt: 0, elapsed: 0, laps: [] }),
   fix(d) {
     d.startAt = numOr(d.startAt, 0); d.running = !!d.running && d.startAt > 0; d.elapsed = Math.max(0, numOr(d.elapsed, 0));
@@ -2485,11 +2628,12 @@ traffic: {
 /* ---------- Name picker (a name card, or a spinning wheel) ---------- */
 picker: {
   label: 'Name picker', icon: 'picker', size: [480, 420], min: [280, 260], settings: true,
-  defaults: () => ({ classId: null, repeats: CONFIG.namePicker.allowRepeats, picked: [], current: '', style: CONFIG.namePicker.style, suspense: CONFIG.namePicker.suspenseSeconds }),
+  defaults: () => ({ classId: null, repeats: CONFIG.namePicker.allowRepeats, picked: [], current: '', style: CONFIG.namePicker.style, suspense: CONFIG.namePicker.suspenseSeconds, tick: !!CONFIG.namePicker.tickSound }),
   fix(d) {
     d.classId = d.classId ? str(d.classId) : null; d.repeats = !!d.repeats; d.picked = (Array.isArray(d.picked) ? d.picked : []).map(str); d.current = str(d.current);
     d.style = d.style === 'wheel' ? 'wheel' : 'card';
     d.suspense = [0, 2, 4].includes(d.suspense) ? d.suspense : [0, 2, 4].includes(CONFIG.namePicker.suspenseSeconds) ? CONFIG.namePicker.suspenseSeconds : 2;
+    d.tick = typeof d.tick === 'boolean' ? d.tick : !!CONFIG.namePicker.tickSound;
   },
   clear: { label: 'Picked names and absentees cleared', fn: d => { d.picked = []; d.current = ''; clearAbsent(d.classId); } },
   mount(body, w, ctx) {
@@ -2507,7 +2651,8 @@ picker: {
     body.append(h('div', { class: 'pk' + (wheelMode ? ' wheel-mode' : '') },
       h('div', { class: 'pk-top' }, sel, absentBtn, manage),
       h('div', { class: 'pk-stage' }, wheelMode ? h('div', { class: 'pk-wrap' }, wheelEl, nameEl) : nameEl),
-      h('div', { class: 'pk-bottom' }, pickBtn, h('div', { class: 'form-row', style: 'gap:10px' }, rep, reset))));
+      // with app buttons on point (PERSONALISE: showOnPoint.appButtons) "Allow repeats" lives in ⚙, so nothing ever covers the Pick button
+      h('div', { class: 'pk-bottom' }, pickBtn, CONFIG.showOnPoint.appButtons ? reset : h('div', { class: 'form-row', style: 'gap:10px' }, rep, reset))));
     let rolling = false, keepWheel = false, wheelNames = null, rot = 0, rotG = null;
     const timers = [], later = (fn, ms) => timers.push(setTimeout(fn, ms));
     const present = () => (cls() ? cls().names.filter(n => !absentFor(d.classId).includes(n)) : []);
@@ -2534,14 +2679,29 @@ picker: {
       const n = wheelNames.length, seg = 360 / n, i = wheelNames.indexOf(winner);
       const want = -(i * seg + seg / 2 + (Math.random() - 0.5) * seg * 0.6);   // that slice (not quite centred) under the pointer
       const target = rot + (2 + Math.round(ms / 1000)) * 360 + ((((want - rot) % 360) + 360) % 360);
+      const from = rot;
       void wheelEl.offsetWidth;
       rotG.style.transition = `transform ${ms}ms cubic-bezier(.15,.7,.1,1)`; rotG.style.transform = `rotate(${target.toFixed(2)}deg)`; rot = target;
       later(done, ms + 80);
+      if (!d.tick) return;
+      // tick each time a slice passes the pointer: follow the wheel's real angle while it turns
+      let total = from, prev = from, slice = Math.floor(from / seg);
+      const follow = () => {
+        if (!rolling || !rotG.isConnected) return;
+        const m = getComputedStyle(rotG).transform;
+        if (m && m !== 'none') {
+          const [a, b] = m.slice(m.indexOf('(') + 1, -1).split(',').map(Number), deg = Math.atan2(b, a) * 180 / Math.PI;
+          total += ((((deg - prev) % 360) + 540) % 360) - 180; prev = deg;
+          const s = Math.floor(total / seg); if (s !== slice) { slice = s; tick(); }
+        }
+        requestAnimationFrame(follow);
+      };
+      requestAnimationFrame(follow);
     }
     // the card: names cycle past in list order, slowing down, and stop on the chosen name
     function roll(p, winner, ms, done) {
       const n = p.length, steps = Math.max(10, Math.min(48, Math.round(ms / 85))), start = (((p.indexOf(winner) - steps) % n) + n) % n;
-      for (let k = 1; k <= steps; k++) later(() => { nameEl.className = 'pk-name rolling'; nameEl.textContent = p[(start + k) % n]; }, ms * Math.pow(k / steps, 2.2));
+      for (let k = 1; k <= steps; k++) later(() => { nameEl.className = 'pk-name rolling'; nameEl.textContent = p[(start + k) % n]; if (d.tick) tick(); }, ms * Math.pow(k / steps, 2.2));
       later(done, ms + 220);
     }
 
@@ -2591,7 +2751,10 @@ picker: {
         }, 'Style')),
       h('div', { class: 'form-sec' }, h('h3', { text: 'Suspense before the name appears' }),
         seg([[0, 'None'], [2, '2 seconds'], [4, '4 seconds']], d.suspense, v => { d.suspense = v; ctx.save(); }, 'Suspense'),
+        h('div', { style: 'margin-top:12px' }, checkbox('Soft ticking sound while names roll past or the wheel spins', d.tick, v => { d.tick = v; ctx.save(); })),
         h('p', { class: 'muted', text: 'Name card: names cycle past in list order and slow down. Wheel: it spins and slows (at least 1½ seconds).' })),
+      CONFIG.showOnPoint.appButtons ? h('div', { class: 'form-sec' }, h('h3', { text: 'Repeats' }),
+        checkbox('Allow repeats (a name can come up again)', d.repeats, v => { d.repeats = v; d.picked = []; ctx.save(); ctx.rerender(); })) : null,
       h('button', { class: 'btn', type: 'button', onclick: () => openPickedList(d) }, icon('people'), 'See who has been picked…'),
     ];
   },
@@ -4027,7 +4190,7 @@ function openHelp() {
         row(K.focus, 'Focus mode on or off'),
         row(['Escape'], 'Leave blank screen, spotlight or focus mode'),
         row(K.help, 'Show this list')),
-      h('p', { class: 'muted', style: 'margin-top:12px', text: 'Most presentation clickers send Page Down / Page Up, so they work straight away — even if you were just typing in an app. On a touch panel, tap an app to choose it, and double-tap its top bar (or tap ⤢) to spotlight it.' })),
+      h('p', { class: 'muted', style: 'margin-top:12px', text: 'Most presentation clickers send Page Down / Page Up, so they work straight away — even if you were just typing in an app. On a touch panel, tap an app to choose it and show its buttons, and double-tap its move handle (or tap ⤢) to spotlight it. The app bar tucks away: point at (or tap) the strip along the bottom edge to bring it up; the pin in its top-right corner keeps it open.' })),
     actions: [{ label: 'Close', kind: 'primary' }],
   });
 }
@@ -4072,10 +4235,15 @@ function nearestFree(k, occ) {
   }
   return best;
 }
+/* free layout: an app pushed right against the bottom edge shows its button row just inside (no room below it) */
+const edgeFlag = (el, w) => el.classList.toggle('at-bottom', !isGrid() && w.y + w.h > 99.3);
 function placeRect(el, w) {
+  edgeFlag(el, w);
   if (isGrid()) {
-    el.style.left = `calc(${w.x}% + ${GAP / 2}px)`; el.style.top = `calc(${w.y}% + ${GAP / 2}px)`;
-    el.style.width = `calc(${w.w}% - ${GAP}px)`; el.style.height = `calc(${w.h}% - ${GAP}px)`;
+    // the grid sits GAP/2 inside the board, so the space at the screen edge equals the space between apps
+    const f = v => (v / 100).toFixed(5);
+    el.style.left = `calc((100% - ${GAP}px) * ${f(w.x)} + ${GAP}px)`; el.style.top = `calc((100% - ${GAP}px) * ${f(w.y)} + ${GAP}px)`;
+    el.style.width = `calc((100% - ${GAP}px) * ${f(w.w)} - ${GAP}px)`; el.style.height = `calc((100% - ${GAP}px) * ${f(w.h)} - ${GAP}px)`;
   } else { el.style.left = w.x + '%'; el.style.top = w.y + '%'; el.style.width = w.w + '%'; el.style.height = w.h + '%'; }
 }
 function place(el, w) { placeRect(el, w); el.style.zIndex = w.z; }
@@ -4084,8 +4252,11 @@ boardEl.append(ghost);
 function showGhost(k) { ghost.hidden = !k; if (k) { const r = {}; fromCells(r, k); placeRect(ghost, r); } }
 /* moving from grid to free: keep each app exactly where it appears (the gaps become part of the position) */
 function bakeGaps(widgets) {
-  const B = boardEl.getBoundingClientRect(), gx = GAP / 2 / B.width * 100, gy = GAP / 2 / B.height * 100;
-  widgets.forEach(w => { w.x += gx; w.y += gy; w.w -= 2 * gx; w.h -= 2 * gy; });
+  const B = boardEl.getBoundingClientRect(), W = B.width, H = B.height;
+  widgets.forEach(w => {   // the same sums as placeRect, turned back into plain percentages
+    w.x = ((W - GAP) * w.x / 100 + GAP) / W * 100; w.y = ((H - GAP) * w.y / 100 + GAP) / H * 100;
+    w.w = ((W - GAP) * w.w / 100 - GAP) / W * 100; w.h = ((H - GAP) * w.h / 100 - GAP) / H * 100;
+  });
 }
 /* first free space from the top-left */
 function firstFree(k, occ) {
@@ -4242,11 +4413,12 @@ function enableDrag(handle, el, w) {
       if (!grid) { w.x = x; w.y = y; return; }
       // grid: the outline shows where it will land — here, or the nearest free space
       boardEl.classList.add('moving');
-      const k = { w: size.w, h: size.h, c: clamp(Math.round(x / CW), 0, COLS - size.w), r: clamp(Math.round(y / RH), 0, ROWS - size.h) };
+      const cw = (B.width - GAP) / COLS, rh = (B.height - GAP) / ROWS;
+      const k = { w: size.w, h: size.h, c: clamp(Math.round((x * B.width / 100 - GAP) / cw), 0, COLS - size.w), r: clamp(Math.round((y * B.height / 100 - GAP) / rh), 0, ROWS - size.h) };
       land = fits(k, occ) ? k : nearestFree(k, occ); showGhost(land);
     }, () => {
       el.classList.remove('dragging'); boardEl.classList.remove('moving'); showGhost(null);
-      if (grid) { if (land) fromCells(w, land); placeRect(el, w); }   // nowhere free: it goes back
+      if (grid) { if (land) fromCells(w, land); placeRect(el, w); } else edgeFlag(el, w);   // grid: nowhere free = it goes back
       if (moved) save();
     });
   });
@@ -4269,10 +4441,10 @@ function enableResize(grip, el, w) {
         el.style.width = w.w + '%'; el.style.height = w.h + '%'; return;
       }
       // grid: size snaps to whole cells and stops at the next app
-      const k = { c: last.c, r: last.r, w: clamp(Math.round((pw + GAP) / (B.width / COLS)), mc.w, COLS - last.c), h: clamp(Math.round((ph + GAP) / (B.height / ROWS)), mc.h, ROWS - last.r) };
+      const k = { c: last.c, r: last.r, w: clamp(Math.round((pw + GAP) / ((B.width - GAP) / COLS)), mc.w, COLS - last.c), h: clamp(Math.round((ph + GAP) / ((B.height - GAP) / ROWS)), mc.h, ROWS - last.r) };
       const next = fits(k, occ) ? k : fits({ ...k, h: last.h }, occ) ? { ...k, h: last.h } : fits({ ...k, w: last.w }, occ) ? { ...k, w: last.w } : last;
       if (next.w !== last.w || next.h !== last.h) { last = next; fromCells(w, last); placeRect(el, w); }
-    }, () => { el.classList.remove('dragging'); save(); });
+    }, () => { el.classList.remove('dragging'); edgeFlag(el, w); save(); });
   });
 }
 
@@ -4311,10 +4483,18 @@ function addWidget(type) {
     else { const c = toCells(w); fromCells(w, { ...c, c: Math.floor((COLS - c.w) / 2), r: Math.floor((ROWS - c.h) / 2) }); toast('The board is full, so this app is on top of others', { label: 'Make room', fn: () => tidyUp() }); }
   } else { const p = findSpot(wpx, hpx, B); w.x = p.x / B.width * 100; w.y = p.y / B.height * 100; }
   board().widgets.push(w); save(); mountWidget(w, true); updateEmpty(); markTarget();
+  dockTip();
+}
+/* once only: say where the app bar went */
+function dockTip() {
+  if (!document.body.classList.contains('bar-auto') || store.prefs.dockPinned || store.prefs.dockTipShown || !board().widgets.length) return;
+  store.prefs.dockTipShown = true; save();
+  toast(CONFIG.showOnPoint.header ? 'The top bar and app bar now tuck away — point at (or tap) the strip at the top or bottom edge to bring them back. The pin in a bar’s corner keeps it open.'
+    : 'The app bar now tucks away at the bottom edge — point at it (or tap it) to bring it back. The pin in its corner keeps it open.', { label: 'Got it', fn: () => {} });
 }
 
 /* ---------- Showing a board ---------- */
-function updateEmpty() { $('#emptyHint').hidden = board().widgets.length > 0; }
+function updateEmpty() { const empty = !board().widgets.length; $('#emptyHint').hidden = !empty; document.body.classList.toggle('board-empty', empty); }
 function renderBoard() {
   exitSpot();
   for (const id of [...instances.keys()]) unmountWidget(id);
@@ -4322,7 +4502,7 @@ function renderBoard() {
   const bg = BGS[b.bg] || BGS[DEFAULT_BG];
   document.body.style.setProperty('--board', bg.c);
   boardEl.classList.toggle('dark', !!bg.dark);
-  boardEl.classList.toggle('grid', isGrid()); boardEl.style.setProperty('--cols', COLS); boardEl.style.setProperty('--rows', ROWS);
+  boardEl.classList.toggle('grid', isGrid()); boardEl.style.setProperty('--cols', COLS); boardEl.style.setProperty('--rows', ROWS); boardEl.style.setProperty('--gap', GAP + 'px');
   [...b.widgets].forEach(w => mountWidget(w, false));
   relayout();
   updateEmpty(); markTarget();
@@ -4538,11 +4718,11 @@ const ACTIONS = {
       if (!cb.checked) return;
       const old = JSON.stringify(store);
       store = sampleStore();
-      saveNow(); document.body.classList.remove('no-header', 'focus'); renderDock(); renderBoard();
+      saveNow(); document.body.classList.remove('no-header', 'focus', 'dock-pinned'); renderDock(); renderHeadPin(); renderBoard();
       m.close();
       toast('Everything reset', { label: 'Undo', fn: () => {
         store = normalize(JSON.parse(old)); saveNow();
-        document.body.classList.toggle('no-header', !!store.prefs.headerHidden); renderDock(); renderBoard();
+        document.body.classList.toggle('no-header', !!store.prefs.headerHidden); document.body.classList.toggle('dock-pinned', !!store.prefs.dockPinned); renderDock(); renderHeadPin(); renderBoard();
       } });
     });
   },
@@ -4583,7 +4763,7 @@ $('#importInput').addEventListener('change', async e => {
     'Replace all', true);
   if (!ok) return;
   data.prefs.lastBackup = !isNaN(Date.parse(parsed.exportedAt)) ? new Date(parsed.exportedAt).toISOString() : new Date().toISOString();
-  store = data; saveNow(); document.body.classList.toggle('no-header', !!store.prefs.headerHidden); renderDock(); renderBoard(); toast('Backup imported');
+  store = data; saveNow(); document.body.classList.toggle('no-header', !!store.prefs.headerHidden); document.body.classList.toggle('dock-pinned', !!store.prefs.dockPinned); renderDock(); renderHeadPin(); renderBoard(); toast('Backup imported');
 });
 document.addEventListener('fullscreenchange', () => { $('#fsBtn').textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen'; });
 
@@ -4592,11 +4772,55 @@ const DOCK = {
   tools: ['analog', 'digital', 'stopwatch', 'exam', 'clock', 'notice', 'agenda', 'bubble', 'traffic', 'picker', 'groups', 'seating', 'points'],
   routines: ['starter', 'routine', 'talk', 'frayer', 'vote', 'confidence', 'exit', 'brainbreak'],
 };
+/* The app bar hides as a thin strip along the bottom edge (PERSONALISE: showOnPoint.appBar).
+   Mouse: point at the strip. Touch: tap it. It stays open while the board is empty, or when pinned. */
+const dockEl = $('#dock');
+/* The top bar works the same way (PERSONALISE: showOnPoint.header) */
+const headEl = document.querySelector('.topbar'), headPin = $('#headPin');
+function renderHeadPin() {
+  const on = !!store.prefs.headPinned;
+  document.body.classList.toggle('head-pinned', on);
+  headPin.hidden = !CONFIG.showOnPoint.header;
+  headPin.className = 'bar-pin' + (on ? ' on' : ''); headPin.setAttribute('aria-pressed', String(on));
+  headPin.title = on ? 'Pinned: the top bar stays open — click to let it hide again' : 'Pin the top bar open';
+  headPin.setAttribute('aria-label', on ? 'Unpin the top bar' : 'Pin the top bar open');
+  if (!headPin.firstChild) headPin.append(icon('pin'));   // keep the same icon, so the click can let go of focus
+}
+headPin.addEventListener('click', () => { store.prefs.headPinned = !store.prefs.headPinned; save(); renderHeadPin(); });
+headEl.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' || headEl.classList.contains('open')) return;
+  headEl.classList.add('open');
+  if (document.body.classList.contains('head-auto') && !document.body.matches('.head-pinned,.board-empty')) {
+    const stop = ev => { ev.stopPropagation(); ev.preventDefault(); };   // first tap only brings it down
+    headEl.addEventListener('click', stop, { capture: true, once: true });
+    setTimeout(() => headEl.removeEventListener('click', stop, true), 700);
+  }
+});
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.topbar')) headEl.classList.remove('open'); });
+function setDockPinned(on) { store.prefs.dockPinned = on; document.body.classList.toggle('dock-pinned', on); save(); renderDock(); }
+dockEl.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' || dockEl.classList.contains('open')) return;
+  dockEl.classList.add('open');   // touch: shows the pin tab too
+  if (document.body.classList.contains('bar-auto') && !document.body.matches('.dock-pinned,.board-empty')) {
+    // the bar was tucked away: the first tap only opens it, so swallow the click that follows
+    const stop = ev => { ev.stopPropagation(); ev.preventDefault(); };
+    dockEl.addEventListener('click', stop, { capture: true, once: true });
+    setTimeout(() => dockEl.removeEventListener('click', stop, true), 700);
+  }
+});
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#dock')) dockEl.classList.remove('open'); });
 function renderDock() {
   const tab = store.prefs.dockTab;
   document.querySelectorAll('#dockTabs button').forEach(b => { const on = b.dataset.tab === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   const apps = $('#dockApps'); apps.textContent = '';
   DOCK[tab].forEach(t => apps.append(h('button', { type: 'button', title: 'Add ' + APPS[t].label, onclick: () => addWidget(t) }, icon(APPS[t].icon), h('span', { text: APPS[t].label }))));
+  const old = $('#dockPin'); if (old) old.remove();
+  if (CONFIG.showOnPoint.appBar) {
+    const on = !!store.prefs.dockPinned;
+    dockEl.append(h('button', { type: 'button', id: 'dockPin', class: 'dock-pin' + (on ? ' on' : ''), 'aria-pressed': String(on),
+      title: on ? 'Pinned: the app bar stays open — click to let it hide again' : 'Pin the app bar open', 'aria-label': on ? 'Unpin the app bar' : 'Pin the app bar open',
+      onclick: () => setDockPinned(!on) }, icon('pin')));
+  }
 }
 $('#dockTabs').addEventListener('click', e => {
   const b = e.target.closest('[data-tab]'); if (!b) return;
@@ -4618,9 +4842,12 @@ $('#classesBtn').prepend(icon('people'));
 $('#helpBtn').append(icon('keyboard'));
 store = loadStore();
 document.body.classList.toggle('no-header', !!store.prefs.headerHidden);
+document.body.classList.toggle('dock-pinned', !!store.prefs.dockPinned);
 renderDock();
+renderHeadPin();
 renderBoard();
 saveNow();
+dockTip();
 })();
 </script>
 </body>
