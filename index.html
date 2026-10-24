@@ -35,18 +35,6 @@
     .brand-icon { width:39px; height:39px; flex:0 0 39px; border-radius:12px; display:grid; place-items:center; background:#183a8a; color:white; }
     [data-theme="dark"] .brand-icon { background:#4469ba; }
     .top-right { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; min-width:0; }
-    /* A small assistant icon opens the discreet selection popover. */
-    .mascot-menu-wrap { position:relative; flex:0 0 auto; }
-    .mascot-toggle { width:37px; height:37px; border:1px solid var(--line); border-radius:10px; display:grid; place-items:center; background:var(--surface); color:var(--text); }
-    .mascot-toggle:hover, .mascot-toggle[aria-expanded="true"] { background:var(--surface2); border-color:var(--accent); }
-    .mascot-toggle svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-    .mascot-menu[hidden] { display:none !important; }
-    .mascot-menu { position:absolute; top:calc(100% + 8px); right:0; z-index:10; min-width:192px; padding:8px; border:1px solid var(--line); border-radius:12px; background:var(--surface); box-shadow:0 14px 32px rgba(24,39,68,.16); }
-    .mascot-menu-title { padding:7px 9px 8px; color:var(--muted); font-size:10px; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
-    .mascot-choice { display:flex; align-items:center; justify-content:space-between; width:100%; padding:10px 9px; gap:12px; border:0; border-radius:8px; background:transparent; color:var(--text); font-size:13px; text-align:left; }
-    .mascot-choice:hover, .mascot-choice:focus-visible { background:var(--surface2); }
-    .mascot-choice[aria-pressed="true"] { color:var(--accent); font-weight:700; }
-    .mascot-check { width:15px; text-align:center; font-weight:700; }
     .status-dot { width:7px; height:7px; border-radius:50%; background:#22a06b; }
     .theme-toggle { width:37px; height:37px; border-radius:10px; display:grid; place-items:center; border:1px solid var(--line); background:var(--surface); color:var(--text); }
     main { flex:1; }
@@ -180,6 +168,20 @@
       .filters { flex-wrap:wrap; overflow:visible; padding:2px 0 5px; max-width:100%; }
       .filter { white-space:normal; max-width:100%; overflow-wrap:anywhere; }
     }
+  
+    /* Shared compact assistant selector. Entries are generated from SETTINGS.MASCOTS. */
+    .mascot-menu-wrap{position:relative;flex:0 0 auto}
+    .mascot-toggle{width:37px;height:37px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;background:var(--surface);color:var(--text)}
+    .mascot-toggle:hover,.mascot-toggle[aria-expanded="true"]{background:var(--surface2);border-color:var(--accent)}
+    .mascot-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .mascot-menu[hidden]{display:none!important}
+    .mascot-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:300;min-width:188px;max-height:min(65vh,400px);overflow-y:auto;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 14px 32px rgba(24,39,68,.16)}
+    .mascot-menu-title{padding:7px 9px 8px;color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+    .mascot-choice{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 9px;gap:12px;border:0;border-radius:8px;background:transparent;color:var(--text);font-size:13px;text-align:left}
+    .mascot-choice:hover,.mascot-choice:focus-visible{background:var(--surface2)}
+    .mascot-choice[aria-pressed="true"]{color:var(--accent);font-weight:700}
+    .mascot-check{width:15px;text-align:center;font-weight:700}
+    @media(max-width:660px){.mascot-toggle{height:36px;width:36px}}
   </style>
 </head>
 <body>
@@ -198,8 +200,7 @@
           <button id="mascotToggle" class="mascot-toggle" type="button" title="Choose assistant" aria-label="Choose assistant" aria-expanded="false" aria-controls="mascotMenu">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14.5c1 1.3 2.3 2 4 2s3-.7 4-2"/><path d="M8.5 9h.01M15.5 9h.01" stroke-width="2.5"/></svg>
           </button>
-          <div id="mascotMenu" class="mascot-menu" aria-label="Choose assistant" hidden>
-            <div class="mascot-menu-title">Choose assistant</div>
+          <div id="mascotMenu" class="mascot-menu" aria-label="Choose assistant" hidden></div>
             <button class="mascot-choice" type="button" data-mascot="volcano" aria-pressed="false"><span>Volcano</span><span class="mascot-check" aria-hidden="true"></span></button>
             <button class="mascot-choice" type="button" data-mascot="compass" aria-pressed="false"><span>Compass</span><span class="mascot-check" aria-hidden="true"></span></button>
             <button class="mascot-choice" type="button" data-mascot="paperclip" aria-pressed="false"><span>Paperclip</span><span class="mascot-check" aria-hidden="true"></span></button>
@@ -249,6 +250,7 @@
     </div>
   </footer>
 
+  <script src="./assets/mascot-engine.js"></script>
   <script>
     // ==================================================================
     // EDIT HERE — ALL APP DETAILS, URLS AND COLLECTION SETTINGS
@@ -264,14 +266,60 @@
       SHOW_OTHER_COLLECTIONS: false,   // true to show ready footer links
       SHOW_DRAFT_TOOLS: false,          // optional preview: show incomplete, disabled cards
       DEFAULT_MASCOT: 'volcano',        // volcano | compass | paperclip
-      SPRITE_VERSION: '1',              // increment to refresh cached local sprite PNGs
+      SPRITE_VERSION: '3',              // bump when you replace PNG files (cache refresh)
+      SPRITE_BASE: './assets/sprites/',
+      // Mascot registry — add a new entry here, then upload five PNGs to assets/sprites/.
+      // `enabled: false` keeps a character installed but hidden from the selector.
+      // Every character has 5 states; Work/Cheer/Wake accept one message or an array.
+      MASCOTS: {
+        volcano: {
+          enabled: true, chip: 'Volcano', label: 'Volcano assistant',
+          idle: ['Ready to explore?', 'Lava lot of ideas today!', "Let's uncover something new.", 'Digging into it.', "You're on fire!", 'Back for more?'],
+          work: ['Digging into it…', "Something's bubbling!"],
+          cheer: ["You're on fire!", 'Eureka!'],
+          wake: ['Back for more?', "I'm fired up!"],
+          gate: 'Volcano on duty!'
+        },
+        compass: {
+          enabled: true, chip: 'Compass', label: 'Compass assistant',
+          idle: ['Where to next?', "Let's chart a course!", 'Finding our bearings…', 'On the right track!', "You've found it!", 'Ready to navigate?'],
+          work: ['Finding our bearings…', 'Checking directions…'],
+          cheer: ['Right on course!', "You've found it!"],
+          wake: ['Ready to navigate?', 'Back on the map?'],
+          gate: 'Compass on duty!'
+        },
+        paperclip: {
+          enabled: true, chip: 'Paperclip', label: 'Paperclip assistant',
+          idle: ['Need a hand?', "Let's get things together.", 'Sorting things out…', "I've got this clipped!", 'Oh, hello again!', 'Something to organise?'],
+          work: ['Sorting things out…', 'Let me check!'],
+          cheer: ["I've got this clipped!", 'Nice work!'],
+          wake: ['Oh, hello again!', 'Something to organise?'],
+          gate: 'Paperclip on duty!'
+        },
+        hedgehog: {
+          enabled: false, chip: 'Hedgehog', label: 'Hedgehog assistant',
+          idle: ['Ready when you are!', 'Living on the edge!', "Let's get to the point.", 'Stay sharp!', 'Small spikes, big ideas.', 'A little prickly, but productive.'],
+          work: ['Looking for tools…', 'Getting to the point…'],
+          cheer: ["Let's go!", 'Looking sharp!'],
+          wake: ['Back again?', 'Ready when you are!'],
+          gate: 'Hedgehog on duty!'
+        },
+        badger: {
+          enabled: false, chip: 'Badger', label: 'Badger assistant',
+          idle: ['Ready when you are!', 'Digging into the details.', "Let's dig deeper!", 'On the scent of a good idea.', 'No badgering, just brainstorming.', 'Time to get things sorted.'],
+          work: ['Digging into the details…', 'Looking for tools…'],
+          cheer: ["Let's go!", 'Well dug!'],
+          wake: ['Back again?', 'Back to digging?'],
+          gate: 'Badger on duty!'
+        },
+      },
 
       URLS: {
         HALP: './halp/index.html',    // Local folder inside Toolbox
         CLASS_SCREEN: './crscreen/index.html', // Retained; hidden until date is filled in
         FIGEO: './figeo/',                // FiGeo app inside this Toolbox repository
         TOOL_4: '',
-        STUDENT_TOOLS: 'https://leungsy.github.io/students/', // Separate repository
+        STUDENT_TOOLS: 'https://user.github.io/students/', // Separate repository
         JUST_FOR_FUN: './just-for-fun/',                  // Local folder
         PRIVATE_COLLECTION: ''        // e.g. 'https://user.github.io/planning/' (StatiCrypt-encrypted landing page)
       },
@@ -279,7 +327,7 @@
       APPS: [
         { key:'HALP', title:'HALP', description:'A deployment planner for organising personnel assignments and reviewing constraints.', category:'Planning', icon:'deployment', lastUpdated:'2026-10-18', requiresPasscode:false },
         { key:'CLASS_SCREEN', title:'ClassScreen', description:'A digital classroom screen for presenting and managing classroom activities.', category:'Classroom', icon:'whiteboard', lastUpdated:'DATE', requiresPasscode:false },
-        { key:'FIGEO', title:'FiGeo', description:'Plot geographical figures and maps for exam and practice papers. FiGeo it out!', category:'Geography', icon:'map', lastUpdated:'DATE', requiresPasscode:false },
+        { key:'FIGEO', title:'FiGeo', description:'Plot geographical figures and maps for exam and practice papers. FiGeo it out!', category:'Geography', icon:'map', lastUpdated:'2026-10-18', requiresPasscode:false },
         { key:'TOOL_4', title:'Tool 4', description:'Describe another school tool here.', category:'School tools', icon:'tool', lastUpdated:'DATE', requiresPasscode:false }
       ]
     };
@@ -314,144 +362,19 @@
     let category = 'All';
 
 
-    // School-page mascots. Sprite sheets are local PNG files in ./assets/sprites/.
-    const spriteArt = document.getElementById('spriteArt');
-    const sleepZs = document.getElementById('sleepZs');
-    const companionBubble = document.getElementById('companionBubble');
-    const mascotToggle = document.getElementById('mascotToggle');
-    const mascotMenuWrap = document.getElementById('mascotMenuWrap');
-    const mascotMenu = document.getElementById('mascotMenu');
-    const mascotChoices = [...mascotMenu.querySelectorAll('.mascot-choice')];
-    const SPRITE_BASE = './assets/sprites/';
-    const mascotStorageKey = 'school-toolbox-mascot';
+    // Shared mascot engine: all characters and messages are defined in SETTINGS.MASCOTS.
+    const mascotSystem = ToolboxMascots.create({
+      settings: SETTINGS,
+      spriteArt: document.getElementById('spriteArt'),
+      bubble: document.getElementById('companionBubble'),
+      sleepZs: document.getElementById('sleepZs'),
+      menu: document.getElementById('mascotMenu'),
+      toggle: document.getElementById('mascotToggle'),
+      storageKey: 'school-toolbox-mascot'
+    });
     const themeStorageKey = 'school-toolbox-theme';
-    const SLEEP_AFTER_MS = 60 * 1000;
-    const BUBBLE_INTERVAL_MS = 14 * 1000;
-    const MASCOTS = {
-      volcano: {
-        label: 'Volcano assistant', chip: 'Volcano',
-        idle: ['Ready to explore?', 'Lava lot of ideas today!', "Let's uncover something new.", 'Digging into it.', "You're on fire!", 'Back for more?'],
-        work: 'Digging into it…', cheer: "You're on fire!", wake: 'Back for more?'
-      },
-      compass: {
-        label: 'Compass assistant', chip: 'Compass',
-        idle: ['Where to next?', "Let's chart a course!", 'Finding our bearings…', 'On the right track!', "You've found it!", 'Ready to navigate?'],
-        work: 'Finding our bearings…', cheer: 'Right on course!', wake: 'Ready to navigate?'
-      },
-      paperclip: {
-        label: 'Paperclip assistant', chip: 'Paperclip',
-        idle: ['Need a hand?', "Let's get things together.", 'Sorting things out…', "I've got this clipped!", 'Oh, hello again!', 'Something to organise?'],
-        work: 'Sorting things out…', cheer: "I've got this clipped!", wake: 'Oh, hello again!'
-      }
-    };
-    function saveValue(key, value) { try { localStorage.setItem(key, value); } catch {} }
-    function loadValue(key) { try { return localStorage.getItem(key); } catch { return null; } }
-    const storedMascot = loadValue(mascotStorageKey);
-    let activeMascot = MASCOTS[storedMascot] ? storedMascot
-      : (MASCOTS[SETTINGS.DEFAULT_MASCOT] ? SETTINGS.DEFAULT_MASCOT : 'volcano');
-    function currentMascot() { return activeMascot; }
-    function spriteUrl(name, mode) { return `${SPRITE_BASE}${name}-${mode}.png?v=${SETTINGS.SPRITE_VERSION || '1'}`; }
-    function setSpriteImage(name, mode) {
-      const url = spriteUrl(name, mode);
-      if (spriteArt.dataset.requestedSprite !== url) {
-        spriteArt.dataset.requestedSprite = url;
-        spriteArt.style.backgroundImage = `url("${url}")`;
-      }
-    }
-    let mascotState = 'idle';
-    let mascotSleepTimer;
-    let mascotWorkTimer;
-    let wakeTimer;
-    let cheerTimer;
-    let lastMovementAt = 0;
-    let idleMessageIndex = 0;
-    let wakingMessage = false;
-    // The compact header menu stays closed unless requested.
-    function setMascotMenuOpen(open) {
-      mascotMenu.hidden = !open;
-      mascotToggle.setAttribute('aria-expanded', String(open));
-    }
-    function updateMascotChoices() {
-      for (const choice of mascotChoices) {
-        const selected = choice.dataset.mascot === activeMascot;
-        choice.setAttribute('aria-pressed', String(selected));
-        choice.querySelector('.mascot-check').textContent = selected ? '✓' : '';
-      }
-    }
-    mascotToggle.addEventListener('click', () => {
-      const opening = mascotMenu.hidden;
-      setMascotMenuOpen(opening);
-      if (opening) mascotMenu.querySelector('[aria-pressed="true"]').focus();
-    });
-    for (const choice of mascotChoices) {
-      choice.addEventListener('click', () => {
-        activeMascot = choice.dataset.mascot;
-        saveValue(mascotStorageKey, activeMascot);
-        clearTimeout(wakeTimer);
-        clearTimeout(cheerTimer);
-        clearTimeout(mascotWorkTimer);
-        idleMessageIndex = 0;
-        mascotState = 'idle';
-        wakingMessage = false;
-        refreshCompanion();
-        resetMascotIdle();
-        setMascotMenuOpen(false);
-        mascotToggle.focus();
-      });
-    }
-    document.addEventListener('pointerdown', event => {
-      if (!mascotMenu.hidden && !mascotMenuWrap.contains(event.target)) setMascotMenuOpen(false);
-    });
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && !mascotMenu.hidden) {
-        setMascotMenuOpen(false);
-        mascotToggle.focus();
-      }
-    });
-    function refreshCompanion() {
-      const mascotKey = currentMascot();
-      const mascot = MASCOTS[mascotKey];
-      const frame = mascotState === 'idle' && wakingMessage ? 'wake' : mascotState;
-      setSpriteImage(mascotKey, frame);
-      spriteArt.dataset.state = frame;
-      sleepZs.hidden = mascotState !== 'sleep';
-      const bubbleText = mascotState === 'sleep' ? ''
-        : mascotState === 'cheer' ? mascot.cheer
-        : mascotState === 'work' ? mascot.work
-        : wakingMessage ? mascot.wake
-        : mascot.idle[idleMessageIndex % mascot.idle.length];
-      companionBubble.textContent = bubbleText || ' ';
-      companionBubble.style.visibility = bubbleText ? 'visible' : 'hidden';
-      updateMascotChoices();
-    }
-    function setMascotState(next) {
-      mascotState = next;
-      if (next !== 'idle') { wakingMessage = false; clearTimeout(wakeTimer); }
-      refreshCompanion();
-    }
-    function resetMascotIdle() {
-      clearTimeout(mascotSleepTimer);
-      if (mascotState === 'sleep') {
-        mascotState = 'idle';
-        wakingMessage = true;
-        refreshCompanion();
-        clearTimeout(wakeTimer);
-        wakeTimer = setTimeout(() => { wakingMessage = false; if (mascotState === 'idle') refreshCompanion(); }, 4200);
-      }
-      mascotSleepTimer = setTimeout(() => {
-        clearTimeout(mascotWorkTimer);
-        clearTimeout(cheerTimer);
-        setMascotState('sleep');
-      }, SLEEP_AFTER_MS);
-    }
-    function companionActivity() { resetMascotIdle(); }
-    function showMascotCheer() {
-      clearTimeout(mascotWorkTimer);
-      clearTimeout(cheerTimer);
-      setMascotState('cheer');
-      resetMascotIdle();
-      cheerTimer = setTimeout(() => { if (mascotState === 'cheer') setMascotState('idle'); }, 1800);
-    }
+    const saveValue = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+    const loadValue = key => { try { return localStorage.getItem(key); } catch { return null; } };
 
     // Search is always available in the sticky dock; category filters appear with 3+ visible tools.
     document.getElementById('controls').hidden = apps.length < 3;
@@ -467,6 +390,7 @@
           b.classList.toggle('active', b.textContent === name);
           b.setAttribute('aria-pressed', String(b.textContent === name));
         }
+        mascotSystem.work();
         renderApps();
       });
       filters.append(button);
@@ -502,22 +426,17 @@
           ? 'Last updated: ' + new Date(`${app.lastUpdated}T00:00:00Z`).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})
           : 'Last updated: not set';
         if (published) {
-          card.addEventListener('mouseenter', showMascotCheer);
-          card.addEventListener('focus', showMascotCheer, true);
-          card.addEventListener('touchstart', showMascotCheer, {passive:true});
+          card.addEventListener('mouseenter', mascotSystem.cheer);
+          card.addEventListener('focus', mascotSystem.cheer, true);
+          card.addEventListener('touchstart', mascotSystem.cheer, {passive:true});
         }
+        if (published) card.addEventListener('mouseleave', mascotSystem.endCheer);
         grid.append(card);
       }
       document.getElementById('count').textContent = `${matches.length} ${matches.length === 1 ? 'tool' : 'tools'}`;
       document.getElementById('empty').hidden = matches.length !== 0;
     }
-    search.addEventListener('input', () => {
-      setMascotState('work');
-      resetMascotIdle();
-      clearTimeout(mascotWorkTimer);
-      mascotWorkTimer = setTimeout(() => { if (mascotState === 'work') setMascotState('idle'); }, 1600);
-      renderApps();
-    });
+    search.addEventListener('input', () => { mascotSystem.work(); renderApps(); });
     renderApps();
 
     // Footer collections: each link has its own URL, and the whole bar has a toggle.
@@ -536,28 +455,11 @@
       document.documentElement.dataset.theme = theme;
       themeButton.textContent = theme === 'dark' ? '☀' : '☾';
       saveValue(themeStorageKey, theme);
+      mascotSystem.refresh();
     }
     setTheme(loadValue(themeStorageKey) || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
     themeButton.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 
-    // Idle / wake / cheer mascot behaviour mirrors the personal page pattern.
-    refreshCompanion();
-    resetMascotIdle();
-    document.addEventListener('pointermove', () => {
-      const now = Date.now();
-      if (now - lastMovementAt < 1000) return;
-      lastMovementAt = now;
-      companionActivity();
-    }, {passive:true});
-    for (const eventName of ['pointerdown','keydown','scroll','touchstart']) {
-      document.addEventListener(eventName, companionActivity, {passive:true});
-    }
-    setInterval(() => {
-      if (mascotState !== 'idle' || wakingMessage) return;
-      idleMessageIndex = (idleMessageIndex + 1) % MASCOTS[currentMascot()].idle.length;
-      refreshCompanion();
-    }, BUBBLE_INTERVAL_MS);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) companionActivity(); });
   </script>
 </body>
 </html>
