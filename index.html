@@ -201,10 +201,6 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14.5c1 1.3 2.3 2 4 2s3-.7 4-2"/><path d="M8.5 9h.01M15.5 9h.01" stroke-width="2.5"/></svg>
           </button>
           <div id="mascotMenu" class="mascot-menu" aria-label="Choose assistant" hidden></div>
-            <button class="mascot-choice" type="button" data-mascot="volcano" aria-pressed="false"><span>Volcano</span><span class="mascot-check" aria-hidden="true"></span></button>
-            <button class="mascot-choice" type="button" data-mascot="compass" aria-pressed="false"><span>Compass</span><span class="mascot-check" aria-hidden="true"></span></button>
-            <button class="mascot-choice" type="button" data-mascot="paperclip" aria-pressed="false"><span>Paperclip</span><span class="mascot-check" aria-hidden="true"></span></button>
-          </div>
         </div>
         <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">☾</button>
       </div>
@@ -256,9 +252,10 @@
     // EDIT HERE — ALL APP DETAILS, URLS AND COLLECTION SETTINGS
     // A local folder: './halp/'
     // A separate GitHub Pages repository: 'https://USERNAME.github.io/repo/'
-    // Publish an app only when its URL AND lastUpdated date are both valid.
-    // The dated example for HALP below is today's launcher revision date;
-    // replace it with HALP's actual last-update date if different.
+    // An app appears only if visible:true AND its URL and lastUpdated are valid.
+    // Set visible:false to keep a configured app hidden without deleting it.
+    // ClassScreen's provisional date below is a publishing placeholder;
+    // replace it with the actual app update date when known.
     // Setting requiresPasscode:true only changes the visual card label.
     // Encrypt the destination HTML independently using StatiCrypt.
     // ==================================================================
@@ -315,8 +312,8 @@
       },
 
       URLS: {
-        HALP: './halp/index.html',    // Local folder inside Toolbox
-        CLASS_SCREEN: './crscreen/index.html', // Retained; hidden until date is filled in
+        HALP: '',                       // Hidden and unpublished; restore './halp/' when ready
+        CLASS_SCREEN: './crscreen/', // ClassScreen folder within this repository
         FIGEO: './figeo/',                // FiGeo app inside this Toolbox repository
         TOOL_4: '',
         STUDENT_TOOLS: 'https://user.github.io/students/', // Separate repository
@@ -325,10 +322,10 @@
       },
 
       APPS: [
-        { key:'HALP', title:'HALP', description:'A deployment planner for organising personnel assignments and reviewing constraints.', category:'Planning', icon:'deployment', lastUpdated:'2026-10-18', requiresPasscode:false },
-        { key:'CLASS_SCREEN', title:'ClassScreen', description:'A digital classroom screen for presenting and managing classroom activities.', category:'Classroom', icon:'whiteboard', lastUpdated:'DATE', requiresPasscode:false },
-        { key:'FIGEO', title:'FiGeo', description:'Plot geographical figures and maps for exam and practice papers. FiGeo it out!', category:'Geography', icon:'map', lastUpdated:'2026-10-18', requiresPasscode:false },
-        { key:'TOOL_4', title:'Tool 4', description:'Describe another school tool here.', category:'School tools', icon:'tool', lastUpdated:'DATE', requiresPasscode:false }
+        { key:'HALP', visible:false, title:'HALP', description:'A deployment planner for organising personnel assignments and reviewing constraints.', category:'Planning', icon:'deployment', lastUpdated:'2026-10-18', requiresPasscode:false },
+        { key:'CLASS_SCREEN', visible:true, title:'ClassScreen', description:'A digital classroom screen for presenting and managing classroom activities.', category:'Classroom', icon:'whiteboard', lastUpdated:'2026-10-24', requiresPasscode:false }, // Provisional: replace with actual update date
+        { key:'FIGEO', visible:true, title:'FiGeo', description:'Plot geographical figures and maps for exam and practice papers. FiGeo it out!', category:'Geography', icon:'map', lastUpdated:'2026-10-18', requiresPasscode:false },
+        { key:'TOOL_4', visible:false, title:'Tool 4', description:'Describe another school tool here.', category:'School tools', icon:'tool', lastUpdated:'DATE', requiresPasscode:false }
       ]
     };
     // ====================== END EDITABLE SETTINGS =======================
@@ -345,7 +342,7 @@
     }
     const linkFor = key => validLink(SETTINGS.URLS[key]);
     const ready = app => Boolean(linkFor(app.key) && validDate(app.lastUpdated));
-    const apps = SETTINGS.APPS.filter(app => ready(app) || SETTINGS.SHOW_DRAFT_TOOLS);
+    const apps = SETTINGS.APPS.filter(app => app.visible === true && (ready(app) || SETTINGS.SHOW_DRAFT_TOOLS));
 
     const ICONS = {
       deployment: '<svg viewBox="0 0 32 32"><circle cx="16" cy="5.5" r="3"/><path d="M9.5 15v-.8c0-3.3 2.4-5.2 6.5-5.2s6.5 1.9 6.5 5.2v.8H9.5zM16 15v5M7 23v-3h18v3"/><rect x="3.5" y="23" width="7" height="6" rx="1.2"/><rect x="21.5" y="23" width="7" height="6" rx="1.2"/></svg>',
