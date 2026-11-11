@@ -127,7 +127,7 @@ select.input{appearance:auto}
 .swatches button.on{box-shadow:0 0 0 3px var(--accent)}
 
 /* ---------- 1.4 Top bar and menus ---------- */
-.topbar{grid-row:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);position:relative;z-index:50}
+.topbar{grid-row:1;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);position:relative;z-index:50}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;margin-right:6px;white-space:nowrap}
 .brand-px{display:inline-flex;width:32px;height:32px;flex:none}
 .brand-px svg{width:100%;height:100%;display:block}
@@ -139,6 +139,26 @@ select.input{appearance:auto}
 .tb-btn.due::after{content:"";position:absolute;top:6px;right:4px;width:10px;height:10px;border-radius:50%;background:#d9922e;box-shadow:0 0 0 2px #fff}
 .save-status{font-size:16px;color:var(--ink-3);white-space:nowrap;padding:0 4px}
 .save-status.err{color:var(--danger);font-weight:700}
+/* The top bar always stays on one line. When it runs out of room (narrow screen, projector, display scaling,
+   long board name) it tightens one step at a time, only as far as needed (fitTopbar in the board script):
+   1 the board name box narrows (down to 150px; a long name ends in …)
+   2 "✓ Saved" hides while saving works, and so do the words beside the logo; a save error shortens to "Not saving" (never hides)
+   3 "Full screen" becomes its icon and "Focus mode" becomes "Focus"
+   4 "Class lists" becomes its icon
+   5 "Hide header" becomes "Hide" (only shown when the top bar doesn't tuck away by itself) */
+.topbar>*{flex:none}
+.topbar>.spacer{flex:1 1 0}
+.topbar .tb-ic,.topbar .tb-short{display:none}
+.topbar.fit-1>.board-pick{flex:0 1 auto;min-width:150px}
+.topbar.fit-1 .board-pick select{min-width:0;width:100%}
+.topbar.fit-2 #brandName,.topbar.fit-2 .save-status:not(.err),.topbar.fit-2 .save-status .tb-long{display:none}
+.topbar.fit-2 .save-status .tb-short{display:inline}
+.topbar.fit-3 #fsBtn .tb-ic{display:inline-flex}
+.topbar.fit-3 #fsBtn .tb-words,.topbar.fit-3 #focusBtn .tb-long{display:none}
+.topbar.fit-3 #focusBtn .tb-short{display:inline}
+.topbar.fit-4 #classesBtn .tb-words{display:none}
+.topbar.fit-5 [data-act="hideHeader"] .tb-long{display:none}
+.topbar.fit-5 [data-act="hideHeader"] .tb-short{display:inline}
 .menu-wrap{position:relative}
 .menu{position:absolute;top:calc(100% + 6px);left:0;min-width:250px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;display:none;z-index:60}
 .menu.right{left:auto;right:0}
@@ -189,8 +209,9 @@ select.input{appearance:auto}
 :is(.dock-pin,.bar-pin).on{color:var(--accent);opacity:.8}
 :is(.dock-pin,.bar-pin).on .icon{transform:none}
 /* The app bar tucks away as a thin strip along the bottom edge (PERSONALISE: showOnPoint.appBar).
-   Point at the strip (mouse) or tap it (touch) and it slides up; it waits a moment before hiding again.
-   It stays open while the board is empty, or when pinned. */
+   Point at the strip (mouse, touchpad, pen) or tap it (finger) and it slides up; it waits a moment before hiding again.
+   It stays open while the board is empty, or when pinned. Pointing is followed by the script (class "pointed"), not
+   only by :hover, so it also works on laptops whose browser reports a touch screen (no hover) while you use the touchpad. */
 body{--strip:16px}
 body.bar-auto:not(.dock-pinned){--row-bot:var(--strip)}
 body.bar-auto:not(.dock-pinned) .dock{position:fixed;left:0;right:0;bottom:0;transform:translateY(calc(100% - var(--strip)));transition:transform .2s ease .4s;box-shadow:0 -8px 28px rgba(31,42,46,.16)}
@@ -199,13 +220,15 @@ body.bar-auto .dock.open,body.bar-auto.board-empty .dock,body.bar-auto .dock:foc
 body.bar-auto.board-empty .dock{box-shadow:none}
 body.bar-auto:not(.dock-pinned) .dock::before{transition:opacity .15s}
 body.bar-auto .dock:is(.open,:focus-within)::before,body.bar-auto.board-empty .dock::before{opacity:0}
+body.bar-auto .dock.pointed{transform:none;transition-delay:.05s}
+body.bar-auto .dock.pointed::before{opacity:0}
 @media (hover:hover){ body.bar-auto .dock:hover::before{opacity:0} }
 @media (hover:hover){
   body.bar-auto .dock:hover{transform:none;transition-delay:.05s}
-  body.bar-auto:not(.dock-pinned):not(.board-empty) .dock:not(.open):not(:focus-within):not(:hover)>*{pointer-events:none;opacity:0}
+  body.bar-auto:not(.dock-pinned):not(.board-empty) .dock:not(.open):not(.pointed):not(:focus-within):not(:hover)>*{pointer-events:none;opacity:0}
 }
 @media (hover:none){
-  body.bar-auto:not(.dock-pinned):not(.board-empty) .dock:not(.open):not(:focus-within)>*{pointer-events:none;opacity:0}
+  body.bar-auto:not(.dock-pinned):not(.board-empty) .dock:not(.open):not(.pointed):not(:focus-within)>*{pointer-events:none;opacity:0}
 }
 /* hide header */
 .pull-tab{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:70;display:none;align-items:center;gap:8px;padding:4px 14px 6px;border:1px solid var(--line-2);border-top:0;border-radius:0 0 12px 12px;background:#fff;font-size:16px;opacity:.6;transition:opacity .2s}
@@ -222,13 +245,15 @@ body.head-auto:not(.head-pinned) .topbar::after{content:"";position:absolute;bot
 body.head-auto .topbar:is(.open,:focus-within,:has(.menu.open)),body.head-auto.board-empty .topbar{transform:none;transition-delay:0s}
 body.head-auto .topbar:is(.open,:focus-within,:has(.menu.open))::after,body.head-auto.board-empty .topbar::after{opacity:0}
 body.head-auto.board-empty .topbar{box-shadow:none}
+body.head-auto .topbar.pointed{transform:none;transition-delay:.05s}   /* pointing, followed by the script (see the app bar) */
+body.head-auto .topbar.pointed::after{opacity:0}
 @media (hover:hover){
   body.head-auto .topbar:hover{transform:none;transition-delay:.05s}
   body.head-auto .topbar:hover::after{opacity:0}
-  body.head-auto:not(.head-pinned):not(.board-empty) .topbar:not(.open):not(:focus-within):not(:has(.menu.open)):not(:hover)>*{pointer-events:none;opacity:0}
+  body.head-auto:not(.head-pinned):not(.board-empty) .topbar:not(.open):not(.pointed):not(:focus-within):not(:has(.menu.open)):not(:hover)>*{pointer-events:none;opacity:0}
 }
 @media (hover:none){
-  body.head-auto:not(.head-pinned):not(.board-empty) .topbar:not(.open):not(:focus-within):not(:has(.menu.open))>*{pointer-events:none;opacity:0}
+  body.head-auto:not(.head-pinned):not(.board-empty) .topbar:not(.open):not(.pointed):not(:focus-within):not(:has(.menu.open))>*{pointer-events:none;opacity:0}
 }
 /* focus mode hides all editing chrome */
 body.focus{grid-template-rows:0 1fr 0}
@@ -786,7 +811,7 @@ kbd{display:inline-block;min-width:1.8em;text-align:center;font-family:var(--fon
 .toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 .toast button{border:1px solid rgba(255,255,255,.4);background:none;color:#fff;border-radius:9px;padding:6px 12px;font-size:16px;white-space:nowrap}
 body.focus .toast,body.bar-auto:not(.dock-pinned):not(.board-empty) .toast{bottom:30px}
-body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,:focus-within)~.toast{bottom:124px}   /* above the bar while it is up */
+body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,.pointed,:focus-within)~.toast{bottom:124px}   /* above the bar while it is up */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -861,7 +886,7 @@ body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,:focus-within)~.toast{bott
     <div class="menu" id="bgMenu"><div class="swatch-grid" id="bgGrid"></div></div>
   </div>
   <div class="spacer"></div>
-  <button class="tb-btn" data-act="classes" id="classesBtn">Class lists</button>
+  <button class="tb-btn" data-act="classes" id="classesBtn" title="Class lists" aria-label="Class lists"><span class="tb-words">Class lists</span></button>
   <div class="menu-wrap">
     <button class="tb-btn" data-menu="backupMenu" id="backupBtn" aria-haspopup="true" aria-expanded="false">Backup ▾</button>
     <div class="menu right" id="backupMenu">
@@ -875,9 +900,9 @@ body.bar-auto:not(.dock-pinned) .dock:is(:hover,.open,:focus-within)~.toast{bott
   </div>
   <span class="save-status" id="saveStatus" title="Your boards save automatically in this browser"></span>
   <button class="tb-btn" data-act="help" id="helpBtn" title="Clicker and keyboard shortcuts" aria-label="Clicker and keyboard shortcuts"></button>
-  <button class="tb-btn" data-act="hideHeader" title="Hide this top bar">Hide header</button>
-  <button class="tb-btn" data-act="focus" id="focusBtn" title="Hide toolbars for teaching (F)">Focus mode</button>
-  <button class="tb-btn" data-act="fullscreen" id="fsBtn">Full screen</button>
+  <button class="tb-btn" data-act="hideHeader" title="Hide this top bar" aria-label="Hide header"><span class="tb-long">Hide header</span><span class="tb-short">Hide</span></button>
+  <button class="tb-btn" data-act="focus" id="focusBtn" title="Hide toolbars for teaching (F)" aria-label="Focus mode"><span class="tb-long">Focus mode</span><span class="tb-short">Focus</span></button>
+  <button class="tb-btn" data-act="fullscreen" id="fsBtn" title="Full screen" aria-label="Full screen"><span class="tb-words" id="fsWords">Full screen</span></button>
   <button class="bar-pin" id="headPin" type="button" hidden></button>
 </header>
 
@@ -1706,15 +1731,17 @@ function loadStore() {
 function save() { clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 350); }
 function saveNow() {
   clearTimeout(saveTimer);
-  const el = $('#saveStatus');
+  const el = $('#saveStatus'), before = el.textContent;
   try {
     localStorage.setItem(KEY, JSON.stringify(store));
     el.textContent = '✓ Saved'; el.classList.remove('err');
     el.title = 'Saved automatically in this browser. Use Backup ▸ Export to keep a copy.';
   } catch (e) {
-    el.textContent = 'Not saving — export a backup'; el.classList.add('err');
+    el.textContent = ''; el.classList.add('err');   // the short words show when the top bar is short of room
+    el.append(h('span', { class: 'tb-long', text: 'Not saving — export a backup' }), h('span', { class: 'tb-short', text: 'Not saving' }));
     el.title = 'This browser is blocking storage. Use Backup ▸ Export to keep your boards.';
   }
+  if (el.textContent !== before) fitTopbar();   // the message changed length
   updateBackupHint();
 }
 window.addEventListener('beforeunload', saveNow);
@@ -4342,10 +4369,11 @@ function mountWidget(w, animate) {
     el.dataset.wasSel = el.classList.contains('sel') ? '1' : '';
     if (e.pointerType !== 'mouse') selectApp(el);   // touch: the tapped app shows its handles
   }, true);
-  head.addEventListener('dblclick', e => { if (!e.target.closest('button')) toggleSpot(w.id); });
-  // touch screens don't send double-clicks, so count two quick taps on the top bar ourselves
-  let tapAt = 0, downAt = null;
-  head.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+  // older touch screens don't send double-clicks, so count two quick taps on the top bar ourselves;
+  // newer Edge and Chrome also send a double-click after the taps, which must not switch the spotlight off again
+  let tapAt = 0, downAt = null, downType = '';
+  head.addEventListener('dblclick', e => { if (downType !== 'touch' && !e.target.closest('button')) toggleSpot(w.id); });
+  head.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; downType = e.pointerType; });
   head.addEventListener('pointerup', e => {
     if (e.pointerType !== 'touch' || !downAt || e.target.closest('button')) return;
     const still = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 12, now = Date.now();
@@ -4514,7 +4542,17 @@ function renderBoard() {
 function renderBoardSelect() {
   const s = $('#boardSelect'); s.textContent = '';
   store.boards.forEach(b => { const o = h('option', { value: b.id }, b.name); if (b.id === store.activeBoardId) o.selected = true; s.append(o); });
+  fitTopbar();
 }
+/* The top bar stays on one line: start from the full bar, then tighten one step at a time (CSS 1.4) until it fits */
+function fitTopbar() {
+  const tb = $('#topbar'); if (!tb.clientWidth) return;   // hidden (focus mode, hidden header): fitted when it shows again
+  for (let i = 1; i <= 5; i++) tb.classList.remove('fit-' + i);
+  let n = 0;
+  while (n < 5 && tb.scrollWidth > tb.clientWidth + 1) tb.classList.add('fit-' + ++n);
+  tb.dataset.fit = n;
+}
+window.addEventListener('resize', fitTopbar);
 function renderBgMenu() {
   const g = $('#bgGrid'); g.textContent = '';
   for (const [k, v] of Object.entries(BGS)) {
@@ -4580,9 +4618,9 @@ blankEl.addEventListener('click', () => setBlank(false));
 /* ---------- Focus mode and hidden header ---------- */
 function setFocus(on) {
   document.body.classList.toggle('focus', on);
-  if (on) toast('Focus mode — press Esc or “Show tools” to bring the toolbars back');
+  if (on) toast('Focus mode — press Esc or “Show tools” to bring the toolbars back'); else fitTopbar();
 }
-function setHeader(hidden) { store.prefs.headerHidden = hidden; document.body.classList.toggle('no-header', hidden); save(); }
+function setHeader(hidden) { store.prefs.headerHidden = hidden; document.body.classList.toggle('no-header', hidden); save(); fitTopbar(); }
 $('#exitFocus').addEventListener('click', () => setFocus(false));
 $('#showHeader').addEventListener('click', () => setHeader(false));
 
@@ -4634,6 +4672,21 @@ document.addEventListener('change', e => {
   const el = e.target;
   if (Date.now() - pointerAt < 10000 && !el.closest('.modal') && el.matches('select, input[type="checkbox"], input[type="radio"]')) letGo(el);
 });
+/* A click or tap outside the app you are typing in (empty board, another app, the bars) ends the typing,
+   so Space and the clicker reach the apps again — newer Edge and Chrome otherwise keep the cursor in the box.
+   Clicks inside the same app (such as the Notice's formatting buttons) keep the cursor where it is. */
+const TYPING = 'input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]';
+document.addEventListener('pointerdown', e => {
+  const a = document.activeElement, t = e.target;
+  if (!a || !a.matches(TYPING) || a.contains(t) || t.closest('.modal-overlay')) return;
+  const app = a.closest('.w'); if (app && app.contains(t)) return;
+  a.blur();
+  // the browser would otherwise put the cursor back in the nearest text box when you click empty space
+  if (t.closest(TYPING + ', a, button, label')) return;
+  const keepOut = ev => ev.preventDefault(), done = () => document.removeEventListener('mousedown', keepOut, true);
+  document.addEventListener('mousedown', keepOut, { capture: true, once: true });
+  document.addEventListener('click', done, { once: true }); setTimeout(done, 1000);   // only for this one click
+}, true);
 
 /* ---------- Menus ---------- */
 function closeMenus() { document.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open')); document.querySelectorAll('[data-menu]').forEach(b => b.setAttribute('aria-expanded', 'false')); }
@@ -4767,7 +4820,10 @@ $('#importInput').addEventListener('change', async e => {
   data.prefs.lastBackup = !isNaN(Date.parse(parsed.exportedAt)) ? new Date(parsed.exportedAt).toISOString() : new Date().toISOString();
   store = data; saveNow(); document.body.classList.toggle('no-header', !!store.prefs.headerHidden); document.body.classList.toggle('dock-pinned', !!store.prefs.dockPinned); renderDock(); renderHeadPin(); renderBoard(); toast('Backup imported');
 });
-document.addEventListener('fullscreenchange', () => { $('#fsBtn').textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen'; });
+document.addEventListener('fullscreenchange', () => {
+  const t = document.fullscreenElement ? 'Exit full screen' : 'Full screen', b = $('#fsBtn');
+  $('#fsWords').textContent = t; b.title = t; b.setAttribute('aria-label', t); fitTopbar();
+});
 
 /* ---------- App bar (two tabs) ---------- */
 const DOCK = {
@@ -4775,7 +4831,7 @@ const DOCK = {
   routines: ['starter', 'routine', 'talk', 'frayer', 'vote', 'confidence', 'exit', 'brainbreak'],
 };
 /* The app bar hides as a thin strip along the bottom edge (PERSONALISE: showOnPoint.appBar).
-   Mouse: point at the strip. Touch: tap it. It stays open while the board is empty, or when pinned. */
+   Mouse, touchpad or pen: point at the strip (followPointer below). Finger: tap it. It stays open while the board is empty, or when pinned. */
 const dockEl = $('#dock');
 /* The top bar works the same way (PERSONALISE: showOnPoint.header) */
 const headEl = document.querySelector('.topbar'), headPin = $('#headPin');
@@ -4811,6 +4867,14 @@ dockEl.addEventListener('pointerdown', e => {
   }
 });
 document.addEventListener('pointerdown', e => { if (!e.target.closest('#dock')) dockEl.classList.remove('open'); });
+/* Pointing with a mouse, touchpad or pen opens a bar while the pointer is on it. The script follows the pointer itself,
+   not only CSS :hover, because on some touch-screen laptops the browser reports "touch, no hover" even while the
+   touchpad is used, and then the strips would never open (taps still work as above). */
+function followPointer(bar) {
+  bar.addEventListener('pointermove', e => { if (e.pointerType !== 'touch') bar.classList.add('pointed'); });
+  bar.addEventListener('pointerleave', () => bar.classList.remove('pointed'));
+}
+followPointer(headEl); followPointer(dockEl);
 function renderDock() {
   const tab = store.prefs.dockTab;
   document.querySelectorAll('#dockTabs button').forEach(b => { const on = b.dataset.tab === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
@@ -4841,6 +4905,8 @@ $('#brandIcon').innerHTML = APP_ICON;
 $('#pullIcon').innerHTML = APP_ICON;
 document.head.append(h('link', { rel: 'icon', type: 'image/svg+xml', href: 'data:image/svg+xml,' + encodeURIComponent(APP_ICON) }));
 $('#classesBtn').prepend(icon('people'));
+$('#fsBtn').prepend(Object.assign(icon('expand'), { className: 'icon tb-ic' }));   // shown instead of the words when the top bar is short of room
+if (document.fonts) document.fonts.ready.then(fitTopbar);
 $('#helpBtn').append(icon('keyboard'));
 store = loadStore();
 document.body.classList.toggle('no-header', !!store.prefs.headerHidden);
